@@ -28,7 +28,7 @@ body {
 
 .fondo-principal {
     position: relative;
-    background-image: url('/CIC/Images/cic.webp');
+    background-image: url('/Images/cic.webp');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
