@@ -9,12 +9,12 @@ body {
   display: flex;
   gap: 20px;
   align-items: flex-start;
+  flex-wrap: wrap; /* para que no se rompa en pantallas chicas */
 }
 
 .btn-volver {
   display: inline-block;
   margin-top: 10px;
-  margin-left: 600px;
   padding: 12px 24px;
   background-color: #45a049;
   color: white;
@@ -23,10 +23,12 @@ body {
   border-radius: 8px;
   text-decoration: none;
   transition: 0.3s;
+  align-self: flex-start;
 }
 
 .btn-volver:hover {
   background-color: #fff;
+  color: #45a049;
   transform: scale(1.05);
 }
 
@@ -42,8 +44,8 @@ body {
 .icono-form {
   width: 80px;
   height: auto;
-  margin-top: 10px;
-  margin-left: 305px;
+  display: block;
+  margin: 10px auto; /* centrado automático */
 }
 
 h2 {
@@ -88,6 +90,7 @@ button {
   border-radius: 5px;
   cursor: pointer;
   margin-top: 10px;
+  width: 100%; /* ocupa todo el ancho en móviles */
 }
 
 button:hover {
@@ -112,4 +115,48 @@ footer {
   background-color: #ffffff;
   color: #000000;
   margin-top: auto;
+}
+
+/* 📱 Responsive */
+@media (max-width: 768px) {
+  .container {
+    width: 90%;
+    padding: 15px;
+  }
+
+  .btn-volver {
+    width: 100%; /* botón a lo ancho */
+    margin: 10px 0;
+    text-align: center;
+  }
+
+  .icono-form {
+    width: 60px;
+  }
+
+  button {
+    font-size: 14px;
+    padding: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  h2 {
+    font-size: 18px;
+  }
+
+  input,
+  select {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  button {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .preview img {
+    max-width: 150px;
+  }
 }

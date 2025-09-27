@@ -31,3 +31,11 @@ formulario.addEventListener('submit', function(e) {
   console.log("Datos cargados:", datos);
   alert("Datos guardados localmente (se implementará BD más adelante).");
 });
+
+//ALERTA----------------------------------------------------------------------------
+window.onload = function (){
+    if (!sessionStorage.getItem("Bienvenido")){
+        alert("Bienveido");
+        sessionStorage.setItem("bienvenidaMostrada", "true");
+    }
+}
