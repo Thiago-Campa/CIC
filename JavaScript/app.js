@@ -1,207 +1,266 @@
-// js/app.js
+
+// form.js
+import { db, serverTimestamp } from "./firebase.js";
 import {
-  db, collection, doc, addDoc, setDoc, getDoc, updateDoc,
-  serverTimestamp, arrayUnion
-} from "./firebase.js";
+  runTransaction, doc, collection, setDoc, getDoc, getDocs, query, orderBy, limit
+} from "firebase/firestore";
 
-const $ = (id) => document.getElementById(id);
-const statusEl = $("status");
+const $ = (s, ctx=document)=>ctx.querySelector(s);
+const statusEl = $("#status");
+const form = $("#formulario");
 
-const edadFrom = (yyyyMmDd) => {
-  if (!yyyyMmDd) return null;
-  const fn = new Date(yyyyMmDd), h = new Date();
-  let e = h.getFullYear() - fn.getFullYear();
-  const m = h.getMonth() - fn.getMonth();
-  if (m < 0 || (m === 0 && h.getDate() < fn.getDate())) e--;
-  return e;
-};
-
-async function ensureHousehold() {
-  const hhId = $("hhId").value.trim();
-
-  // Si hay ID, lo busco; si no existe, lo creo con merge para no perder datos futuros
-  if (hhId) {
-    const hhRef = doc(db, "households", hhId);
-    const snap = await getDoc(hhRef);
-    if (!snap.exists()) {
-      await setDoc(hhRef, {
-        grupoFamiliar: $("grupoFamiliar").value.trim() || "",
-        vivienda: $("vivienda").value || "",
-        direccion: {
-          calle: $("calle").value || "",
-          numero: $("numero").value || "",
-          barrio: $("barrio").value || "",
-          ciudad: $("ciudad").value || "",
-          provincia: $("provincia").value || ""
-        },
-        miembros: [],
-        creadoEn: serverTimestamp()
-      }, { merge: true });
-    } else {
-      // merge no destructivo
-      await setDoc(hhRef, {
-        grupoFamiliar: $("grupoFamiliar").value.trim() || snap.data().grupoFamiliar || "",
-        vivienda: $("vivienda").value || snap.data().vivienda || "",
-        direccion: {
-          ...(snap.data().direccion || {}),
-          calle: $("calle").value || (snap.data().direccion || {}).calle || "",
-          numero: $("numero").value || (snap.data().direccion || {}).numero || "",
-          barrio: $("barrio").value || (snap.data().direccion || {}).barrio || "",
-          ciudad: $("ciudad").value || (snap.data().direccion || {}).ciudad || "",
-          provincia: $("provincia").value || (snap.data().direccion || {}).provincia || ""
-        }
-      }, { merge: true });
-    }
-    return hhRef;
-  }
-
-  // Crear uno nuevo
-  const hhRef = doc(collection(db, "households"));
-  await setDoc(hhRef, {
-    grupoFamiliar: $("grupoFamiliar").value.trim() || "",
-    vivienda: $("vivienda").value || "",
-    direccion: {
-      calle: $("calle").value || "",
-      numero: $("numero").value || "",
-      barrio: $("barrio").value || "",
-      ciudad: $("ciudad").value || "",
-      provincia: $("provincia").value || ""
-    },
-    miembros: [],
-    creadoEn: serverTimestamp()
+// ==== helpers ====
+function normStr(v){ return (v ?? "").toString().trim(); }
+function onlyDigits(v){ return normStr(v).replace(/\D+/g,""); }
+function slugifyName(v){
+  return normStr(v)
+    .toLowerCase()
+    .normalize('NFD').replace(/\p{Diacritic}/gu,'')
+    .replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+}
+function toBool(v){
+  if(v==null) return null;
+  const s = String(v).trim().toLowerCase();
+  if(["si","sí","true","1","yes"].includes(s)) return true;
+  if(["no","false","0"].includes(s)) return false;
+  return null;
+}
+function parseEstudios(txt){
+  if(!txt) return [];
+  return txt.split("\n").map(l=>l.trim()).filter(Boolean).map(l=>{
+    const [nivel="", institucion="", estado=""] = l.split("|").map(x=>x?.trim()||"");
+    return { nivel, institucion, estado };
   });
-  return hhRef;
 }
 
-function buildPersonPayload(householdId) {
-  const edad = edadFrom($("fechaNacimiento").value);
+// ==== cache & datalist ====
+const HOUSEHOLDS_CACHE = { list: [], loadedAt: 0 };
+
+async function loadHouseholdsIntoCacheAndUI(){
+  if(Date.now() - HOUSEHOLDS_CACHE.loadedAt < 60000 && HOUSEHOLDS_CACHE.list.length) return;
+
+  // orden por nombre (si no hay, por id)
+  const q = query(collection(db, "households"));
+  const snap = await getDocs(q);
+
+  HOUSEHOLDS_CACHE.list = [];
+  snap.forEach(d=>{
+    const data = d.data() || {};
+    HOUSEHOLDS_CACHE.list.push({ id:d.id, nombre: normStr(data.grupoFamiliar||""), slug: normStr(data.slug||"") });
+  });
+  HOUSEHOLDS_CACHE.loadedAt = Date.now();
+
+  const dl = $("#listaGrupos");
+  if(dl){
+    dl.innerHTML = "";
+    HOUSEHOLDS_CACHE.list
+      .sort((a,b)=> (a.nombre||a.id).localeCompare(b.nombre||b.id))
+      .forEach(h=>{
+        const opt = document.createElement("option");
+        opt.value = h.nombre || h.id;
+        dl.appendChild(opt);
+      });
+  }
+}
+
+// ==== ensureHousehold (modular + índice único por slug) ====
+async function ensureHousehold(hhIdInput, grupoFamiliarInput){
+  const hhId = normStr(hhIdInput);
+  const nombre = normStr(grupoFamiliarInput);
+  const slug = slugifyName(nombre);
+
+  return await runTransaction(db, async (tx)=>{
+    const householdsCol = collection(db, "households");
+
+    // 1) Con ID explícito
+    if(hhId){
+      const ref = doc(householdsCol, hhId);
+      const snap = await tx.get(ref);
+      if(!snap.exists()){
+        tx.set(ref, { createdAt: serverTimestamp(), systemNote: "Creado al vuelo por carga de persona" });
+      }
+      return ref.id;
+    }
+
+    // 2) Con nombre: usar índice household_slug_index/{slug}
+    if(nombre){
+      const idxRef = doc(collection(db, "household_slug_index"), slug);
+      const idxSnap = await tx.get(idxRef);
+      if(idxSnap.exists()){
+        const { householdId } = idxSnap.data();
+        return householdId; // reutiliza existente
+      }
+
+      // crear nuevo household y el índice
+      const newRef = doc(householdsCol);
+      tx.set(newRef, { grupoFamiliar: nombre, slug, createdAt: serverTimestamp() });
+      tx.set(idxRef, { householdId: newRef.id, createdAt: serverTimestamp() });
+      return newRef.id;
+    }
+
+    // 3) Sin datos → crear vacío
+    const newRef = doc(householdsCol);
+    tx.set(newRef, { createdAt: serverTimestamp() });
+    return newRef.id;
+  });
+}
+
+// ==== upsert household data ====
+async function upsertHouseholdData(householdId, data){
+  const ref = doc(collection(db, "households"), householdId);
   const payload = {
+    updatedAt: serverTimestamp(),
+    direccion: {
+      calle: data.calle || "",
+      numero: data.numero || "",
+      barrio: data.barrio || "",
+      ciudad: data.ciudad || "",
+      provincia: data.provincia || "",
+    }
+  };
+  if(data.grupoFamiliar) payload.grupoFamiliar = data.grupoFamiliar;
+  if(data.vivienda) payload.vivienda = data.vivienda;
+
+  await setDoc(ref, payload, { merge:true });
+}
+
+// ==== guardar persona con índice único de DNI ====
+async function savePersonTransactional(householdId, p){
+  const dniClean = onlyDigits(p.dni);
+  const email = normStr(p.email).toLowerCase();
+
+  if(!normStr(p.nombre) || !normStr(p.apellido)){
+    throw new Error("Nombre y Apellido son obligatorios.");
+  }
+  if(!dniClean){
+    throw new Error("DNI es requerido para verificar duplicados.");
+  }
+
+  const personPayload = {
     householdId,
-    relacionHogar: $("relacionHogar").value || "",
-    nombre: $("nombre").value.trim(),
-    apellido: $("apellido").value.trim(),
-    dni: $("dni").value.trim(),
-    fechaNacimiento: $("fechaNacimiento").value || "",
-    edad,
-    sexo: $("sexo").value || "",
-    correo: $("email").value.trim(),
-    tel: $("telefono").value.trim(),
-    ocupacion: $("ocupacion").value.trim(),
-    estadoCivil: $("estadoCivil").value || "nd",
-    educacion: {
-      nivelActual: $("nivelActual").value || "",
-      institucion: $("institucion").value || "",
-      estado: $("estadoEdu").value || "",
-      anteriores: []
-    },
-    discapacidad: {
-      tiene: $("tieneDis").value === "true",
-      tipo: $("tipoDis").value.trim(),
-      tratamientoMedico: $("tratDis").value === "true"
-    },
-    beneficioSocial: {
-      tiene: $("tieneBen").value === "true",
-      nombre: $("nomBen").value.trim(),
-      organismo: $("orgBen").value.trim()
-    },
-    obraSocial: {
-      tiene: $("tieneOS").value === "true",
-      nombre: $("nomOS").value.trim()
-    },
-    flags: {
-      esMayor: (edad !== null ? edad >= 18 : null),
-      hasDisability: $("tieneDis").value === "true",
-      hasBenefit: $("tieneBen").value === "true",
-      hasObraSocial: $("tieneOS").value === "true"
-    },
-    creadoEn: serverTimestamp()
+
+    relacionHogar: normStr(p.relacionHogar),
+    nombre: normStr(p.nombre),
+    apellido: normStr(p.apellido),
+    dni: dniClean,
+    fechaNacimiento: normStr(p.fechaNacimiento),
+    sexo: normStr(p.sexo),
+    email,
+    telefono: normStr(p.telefono),
+    ocupacion: normStr(p.ocupacion),
+    estadoCivil: normStr(p.estadoCivil),
+
+    nivelActual: normStr(p.nivelActual),
+    institucion: normStr(p.institucion),
+    estadoEdu: normStr(p.estadoEdu),
+    estudiosAnteriores: parseEstudios(p.anteriores),
+
+    tieneDis_label: normStr(p.tieneDis),
+    tieneDis: toBool(p.tieneDis),
+    tipoDis: normStr(p.tipoDis),
+    tratDis_label: normStr(p.tratDis),
+    tratDis: toBool(p.tratDis),
+    conCUD_label: normStr(p.conCUD),
+    conCUD: toBool(p.conCUD),
+    cudVto: normStr(p.cudVto),
+
+    tieneBen_label: normStr(p.tieneBen),
+    tieneBen: toBool(p.tieneBen),
+    nomBen: normStr(p.nomBen),
+    orgBen: normStr(p.orgBen),
+    estBen: normStr(p.estBen),
+
+    tieneOS_label: normStr(p.tieneOS),
+    tieneOS: toBool(p.tieneOS),
+    nomOS: normStr(p.nomOS),
+
+    createdAt: serverTimestamp()
   };
 
-  // Parsear estudios anteriores (una línea por estudio: "nivel | institución | estado")
-  const prevLines = $("anteriores").value.split("\n").map(s => s.trim()).filter(Boolean);
-  for (const line of prevLines) {
-    const [nivel, institucion, estado] = line.split("|").map(s => (s || "").trim());
-    if (nivel || institucion || estado) {
-      payload.educacion.anteriores.push({ nivel: nivel || "", institucion: institucion || "", estado: estado || "" });
+  await runTransaction(db, async (tx)=>{
+    const idxRef = doc(collection(db, "dni_index"), dniClean);
+    const idxSnap = await tx.get(idxRef);
+    if(idxSnap.exists()){
+      throw new Error("Ya existe una persona registrada con ese DNI.");
     }
-  }
-  return payload;
-}
 
-async function persistPersonGraph(hhRef, personPayload) {
-  // PERSON
-  const personRef = doc(collection(db, "persons"));
-  await setDoc(personRef, personPayload);
-
-  // EDUCATIONS (actual)
-  if (personPayload.educacion.nivelActual || personPayload.educacion.institucion || personPayload.educacion.estado) {
-    await addDoc(collection(db, "educations"), {
-      personId: personRef.id,
-      nivel: personPayload.educacion.nivelActual || "",
-      institucion: personPayload.educacion.institucion || "",
-      estado: personPayload.educacion.estado || "",
-      esActual: true
-    });
-  }
-  // EDUCATIONS (anteriores)
-  for (const e of personPayload.educacion.anteriores) {
-    await addDoc(collection(db, "educations"), {
-      personId: personRef.id, nivel: e.nivel || "", institucion: e.institucion || "",
-      estado: e.estado || "", esActual: false
-    });
-  }
-
-  // PERSON_DISABILITY
-  if (personPayload.discapacidad.tiene) {
-    await addDoc(collection(db, "person_disabilities"), {
-      personId: personRef.id,
-      tipo: personPayload.discapacidad.tipo || "",
-      tratamientoMedico: personPayload.discapacidad.tratamientoMedico || false,
-      conCUD: $("conCUD").value === "true",
-      cudVencimiento: $("cudVto").value || ""
-    });
-  }
-
-  // PERSON_BENEFIT
-  if (personPayload.beneficioSocial.tiene) {
-    await addDoc(collection(db, "person_benefits"), {
-      personId: personRef.id,
-      nombre: personPayload.beneficioSocial.nombre || "",
-      organismo: personPayload.beneficioSocial.organismo || "",
-      estado: $("estBen").value || ""
-    });
-  }
-
-  // Vincular en household.miembros (snapshot mínimo)
-  await updateDoc(hhRef, {
-    miembros: arrayUnion({
-      personId: personRef.id,
-      relacionHogar: personPayload.relacionHogar,
-      nombre: personPayload.nombre,
-      apellido: personPayload.apellido,
-      dni: personPayload.dni,
-      edad: personPayload.edad,
-      sexo: personPayload.sexo
-    })
+    const personRef = doc(collection(db, "persons"));
+    tx.set(personRef, personPayload);
+    tx.set(idxRef, { personId: personRef.id, householdId, createdAt: serverTimestamp() });
   });
-
-  return personRef.id;
 }
 
-// SUBMIT
-document.getElementById("formulario").addEventListener("submit", async (e) => {
+// ==== submit ====
+async function onSubmit(e){
   e.preventDefault();
   statusEl.textContent = "Guardando...";
-  try {
-    const hhRef = await ensureHousehold();
-    const personPayload = buildPersonPayload(hhRef.id);
-    const personId = await persistPersonGraph(hhRef, personPayload);
+  statusEl.classList.remove("ok","err");
 
-    statusEl.innerHTML = `<span class="ok">✅ Guardado: household <code>${hhRef.id}</code> • person <code>${personId}</code></span>`;
-    e.target.reset();
-    $("hhId").value = hhRef.id; // seguir sumando al mismo hogar
-  } catch (err) {
+  try{
+    // HOUSEHOLD
+    const householdPayload = {
+      hhId: $("#hhId").value,
+      grupoFamiliar: $("#grupoFamiliar").value,
+      vivienda: $("#vivienda").value || "",
+      calle: $("#calle").value,
+      numero: $("#numero").value,
+      barrio: $("#barrio").value,
+      ciudad: $("#ciudad").value,
+      provincia: $("#provincia").value,
+    };
+    const householdId = await ensureHousehold(householdPayload.hhId, householdPayload.grupoFamiliar);
+    await upsertHouseholdData(householdId, householdPayload);
+
+    // PERSON
+    const personPayload = {
+      relacionHogar: $("#relacionHogar").value,
+      nombre: $("#nombre").value,
+      apellido: $("#apellido").value,
+      dni: $("#dni").value,
+      fechaNacimiento: $("#fechaNacimiento").value,
+      sexo: $("#sexo").value,
+      email: $("#email").value,
+      telefono: $("#telefono").value,
+      ocupacion: $("#ocupacion").value,
+      estadoCivil: $("#estadoCivil").value,
+
+      nivelActual: $("#nivelActual").value,
+      institucion: $("#institucion").value,
+      estadoEdu: $("#estadoEdu").value,
+      anteriores: $("#anteriores").value,
+
+      tieneDis: $("#tieneDis").value,
+      tipoDis: $("#tipoDis").value,
+      tratDis: $("#tratDis").value,
+      conCUD: $("#conCUD").value,
+      cudVto: $("#cudVto").value,
+
+      tieneBen: $("#tieneBen").value,
+      nomBen: $("#nomBen").value,
+      orgBen: $("#orgBen").value,
+      estBen: $("#estBen").value,
+
+      tieneOS: $("#tieneOS").value,
+      nomOS: $("#nomOS").value,
+    };
+
+    await savePersonTransactional(householdId, personPayload);
+
+    statusEl.textContent = `✔ Guardado. Household: ${householdId}`;
+    statusEl.classList.add("ok");
+    form.reset();
+    $("#hhId").value = householdId; // seguir cargando al mismo hogar
+    loadHouseholdsIntoCacheAndUI();
+
+  }catch(err){
     console.error(err);
-    statusEl.innerHTML = `<span class="err">❌ Error: ${err.message || err}</span>`;
+    statusEl.textContent = "Error: " + (err.message || "No se pudo guardar");
+    statusEl.classList.add("err");
   }
+}
+
+// ==== init ====
+document.addEventListener("DOMContentLoaded", ()=>{
+  loadHouseholdsIntoCacheAndUI();
+  form.addEventListener("submit", onSubmit);
 });
