@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Staff - CIC</title>
+    <link rel="icon" href="/Icons/icono-pavon-arriba.jpeg" type="image/png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #368dff 0%, #2563eb 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            padding: 3rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo-container img {
+            width: 100px;
+            height: auto;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            color: #368dff;
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #368dff;
+            box-shadow: 0 0 0 3px rgba(54, 141, 255, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: #368dff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1rem;
+        }
+
+        .btn-login:hover {
+            background: #2979ff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(54, 141, 255, 0.3);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 1rem;
+            display: none;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .back-link a {
+            color: #666;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .back-link a:hover {
+            color: #368dff;
+        }
+
+        .credentials-hint {
+            background: #f8f9fa;
+            border-left: 4px solid #368dff;
+            padding: 12px;
+            margin-top: 1.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .credentials-hint strong {
+            color: #333;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 2rem 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="logo-container">
+            <img src="/Images/LOGO-BLANCO-PNG-RGB.webp" alt="Logo CIC">
+            <h1>Acceso Staff</h1>
+            <p class="subtitle">Centro de Integración Comunitaria</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Usuario</label>
+                <input type="text" id="username" placeholder="Ingrese su usuario" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" placeholder="Ingrese su contraseña" required>
+            </div>
+
+            <button type="submit" class="btn-login">Iniciar Sesión</button>
+
+            <div class="error-message" id="errorMessage">
+                Usuario o contraseña incorrectos
+            </div>
+        </form>
+
+        <!-- Ayuda temporal para desarrollo - QUITAR EN PRODUCCIÓN -->
+        
+        <!--<div class="credentials-hint">
+            <strong>🔐 Credenciales de prueba:</strong>
+            Admin: admin / cic2024<br>
+            Operador: operador1 / op123<br>
+            Lectura: consulta / read123
+        </div>
+-->
+
+        <div class="back-link">
+            <a href="index.html">← Volver a la página principal</a>
+        </div>
+    </div>
+
+    <script>
+        // Base de datos de usuarios
+        const USERS_DATABASE = {
+            'admin': { password: 'cic2024', role: 'admin', email: 'admin@cic.gob.ar' },
+            'administrador': { password: 'pavon123', role: 'admin', email: 'admin2@cic.gob.ar' },
+            'operador1': { password: 'op123', role: 'operador', email: 'operador@cic.gob.ar' },
+            'consulta': { password: 'read123', role: 'lectura', email: 'consulta@cic.gob.ar' }
+        };
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('errorMessage');
+            
+            // Verificar credenciales
+            const user = USERS_DATABASE[username];
+            
+            if (user && user.password === password) {
+                // Login exitoso
+                sessionStorage.setItem('isLoggedIn', 'true');
+                sessionStorage.setItem('currentUser', username);
+                sessionStorage.setItem('userRole', user.role);
+                
+                // Mantener compatibilidad con sistema anterior para admins
+                if (user.role === 'admin') {
+                    sessionStorage.setItem('isAdmin', 'true');
+                    sessionStorage.setItem('adminUser', username);
+                }
+                
+                // Redirigir al panel de administración
+                window.location.href = 'admin.html';
+            } else {
+                // Login fallido
+                errorDiv.style.display = 'block';
+                document.getElementById('password').value = '';
+                document.getElementById('password').focus();
+                
+                // Ocultar mensaje después de 3 segundos
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 3000);
+            }
+        });
+
+        // Verificar si ya hay sesión activa
+        window.addEventListener('load', function() {
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+            if (isLoggedIn === 'true') {
+                // Ya hay sesión, redirigir al panel
+                window.location.href = 'admin.html';
+            }
+        });
+    </script>
+</body>
+
+</html>
