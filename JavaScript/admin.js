@@ -1,11 +1,5 @@
-// ============================================
-// CONFIGURACIÓN: Modo de datos
-// ============================================
-const USE_MOCK_DATA = true; // Cambiar a false cuando Firebase esté listo
-
-// ============================================
-// DATOS MOCK (solo para desarrollo)
-// ============================================
+// JavaScript/admin.js
+// Datos de prueba
 const mockData = [
   {
     id: '1', nombre: 'Juan', apellido: 'Pérez', dni: '12345678', edad: 35,
@@ -50,33 +44,29 @@ const mockData = [
   }
 ];
 
-// ============================================
-// VARIABLES GLOBALES
-// ============================================
-let allData = USE_MOCK_DATA ? mockData : [];
+let allData = mockData;
 let filteredData = [];
 const itemsPerPage = 10;
 let currentPage = 1;
-let currentUserRole = null;
 
-// ============================================
-// AUTENTICACIÓN
-// ============================================
+// Verificar autenticación
 function checkAuth() {
   const isLoggedIn = sessionStorage.getItem('isLoggedIn');
   const currentUser = sessionStorage.getItem('currentUser');
   const userRole = sessionStorage.getItem('userRole');
+  const isAdmin = sessionStorage.getItem('isAdmin');
+  const adminUser = sessionStorage.getItem('adminUser');
 
-  if (isLoggedIn === 'true' && currentUser) {
-    currentUserRole = userRole || 'admin';
+  if ((isLoggedIn === 'true' && currentUser) || (isAdmin === 'true' && adminUser)) {
+    const displayUser = currentUser || adminUser;
+    const displayRole = userRole || 'admin';
     
-    // Mostrar info del usuario
     const userInfo = document.createElement('div');
     userInfo.style.cssText = 'position: fixed; top: 10px; left: 20px; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 4px; font-size: 12px; z-index: 1000;';
-    userInfo.textContent = `Conectado como: ${getRoleDisplay(currentUserRole)} - ${currentUser}`;
+    userInfo.textContent = `Conectado como: ${getRoleDisplay(displayRole)} - ${displayUser}`;
     document.body.appendChild(userInfo);
     
-    setupRolePermissions(currentUserRole);
+    setupRolePermissions(displayRole);
     return true;
   } else {
     alert('Acceso denegado. Debe iniciar sesión.');
@@ -94,34 +84,125 @@ function getRoleDisplay(role) {
   return roles[role] || 'Usuario';
 }
 
-function handleLogout() {
-  if (confirm('¿Desea cerrar la sesión?')) {
-    sessionStorage.clear();
-    alert('Sesión cerrada exitosamente');
-    window.location.href = 'index.html';
-  }
-}
-
-// ============================================
-// PERMISOS POR ROL
-// ============================================
 function setupRolePermissions(userRole) {
+  // Mostrar banner informativo
   showRoleBanner(userRole);
   
+  // Obtener elementos que pueden ser restringidos
   const userManagementLink = document.getElementById('userManagementLink');
   const exportButton = document.querySelector('[onclick="exportData()"]');
   
   if (userRole === 'lectura') {
-    // Solo lectura: máximas restricciones
+    // SOLO LECTURA: Máximas restricciones
+    
+    // 1. Ocultar gestión de usuarios
     if (userManagementLink) userManagementLink.style.display = 'none';
+    
+    // 2. Ocultar botón de exportar
     if (exportButton) exportButton.style.display = 'none';
     
+    // 3. Modificar función createTableRow para quitar botón eliminar
+    window.originalCreateTableRow = createTableRow;
+    window.createTableRow = function(person) {
+      const direccion = person.household.direccion || {};
+      const direccionCompleta = [direccion.calle, direccion.numero, direccion.barrio].filter(Boolean).join(' ');
+      const fechaRegistro = person.creadoEn.toDate().toLocaleDateString('es-AR');
+
+      return `
+        <tr>
+          <td><strong>${person.nombre} ${person.apellido}</strong></td>
+          <td>${person.dni || 'N/A'}</td>
+          <td>${person.edad || 'N/A'}</td>
+          <td>${person.relacionHogar || 'N/A'}</td>
+          <td><strong>${person.household.grupoFamiliar || 'N/A'}</strong></td>
+          <td>${direccionCompleta || 'N/A'}</td>
+          <td>${formatDisabilityBadge(person)}</td>
+          <td>${formatBenefitBadge(person)}</td>
+          <td>${fechaRegistro}</td>
+          <td>
+            <button class="btn btn-secondary btn-small" onclick="viewDetailsReadOnly('${person.id}')">Consultar</button>
+          </td>
+        </tr>
+      `;
+    };
+    
+    // 4. Función especial de consulta para solo lectura
+    window.viewDetailsReadOnly = function(personId) {
+      const person = allData.find(p => p.id === personId);
+      if (!person) return;
+      
+      const details = [
+        `=== CONSULTA DE DATOS (SOLO LECTURA) ===`,
+        ``,
+        `Nombre: ${person.nombre} ${person.apellido}`,
+        `DNI: ${person.dni}`,
+        `Edad: ${person.edad}`,
+        `Sexo: ${person.sexo}`,
+        `Relación: ${person.relacionHogar}`,
+        `Grupo Familiar: ${person.household.grupoFamiliar}`,
+        `Dirección: ${[person.household.direccion?.calle, person.household.direccion?.numero, person.household.direccion?.barrio].filter(Boolean).join(' ')}`,
+        `Discapacidad: ${person.flags?.hasDisability ? 'Sí - ' + (person.disability?.tipo || 'N/E') : 'No'}`,
+        `Beneficios: ${person.flags?.hasBenefit ? person.benefit?.nombre || 'Sí' : 'No'}`,
+        ``,
+        `⚠️ Usuario de solo lectura - No puede modificar datos`
+      ].join('\n');
+      
+      alert(details);
+    };
+    
+    // 5. Deshabilitar exportación
+    window.exportData = function() {
+      alert('❌ ACCESO DENEGADO\n\nUsuarios de solo lectura no pueden exportar datos.\n\nContacte a un administrador.');
+    };
+    
   } else if (userRole === 'operador') {
-    // Operador: restricciones medias
+    // OPERADOR: Restricciones medias
+    
+    // 1. Ocultar gestión de usuarios
     if (userManagementLink) userManagementLink.style.display = 'none';
     
+    // 2. Modificar función createTableRow para cambiar el botón eliminar
+    window.originalCreateTableRow = createTableRow;
+    window.createTableRow = function(person) {
+      const direccion = person.household.direccion || {};
+      const direccionCompleta = [direccion.calle, direccion.numero, direccion.barrio].filter(Boolean).join(' ');
+      const fechaRegistro = person.creadoEn.toDate().toLocaleDateString('es-AR');
+
+      return `
+        <tr>
+          <td><strong>${person.nombre} ${person.apellido}</strong></td>
+          <td>${person.dni || 'N/A'}</td>
+          <td>${person.edad || 'N/A'}</td>
+          <td>${person.relacionHogar || 'N/A'}</td>
+          <td><strong>${person.household.grupoFamiliar || 'N/A'}</strong></td>
+          <td>${direccionCompleta || 'N/A'}</td>
+          <td>${formatDisabilityBadge(person)}</td>
+          <td>${formatBenefitBadge(person)}</td>
+          <td>${fechaRegistro}</td>
+          <td>
+            <button class="btn btn-primary btn-small" onclick="viewDetails('${person.id}')">Ver</button>
+            <button class="btn btn-danger btn-small" onclick="deletePersonOperator('${person.id}')">Eliminar</button>
+          </td>
+        </tr>
+      `;
+    };
+    
+    // 3. Función especial de eliminación para operadores
+    window.deletePersonOperator = function(personId) {
+      const person = allData.find(p => p.id === personId);
+      if (!person) return;
+      
+      const confirmMessage = `⚠️ CONFIRMACIÓN DE OPERADOR\n\nEstá a punto de eliminar:\n${person.nombre} ${person.apellido} (DNI: ${person.dni})\n\nEsta acción no se puede deshacer.\n\n¿Confirma la eliminación?`;
+      
+      if (confirm(confirmMessage)) {
+        allData = allData.filter(p => p.id !== personId);
+        loadData();
+        alert(`✅ Registro eliminado por operador: ${sessionStorage.getItem('currentUser')}`);
+      }
+    };
+    
   } else if (userRole === 'admin') {
-    // Admin: acceso completo
+    // ADMINISTRADOR: Acceso completo (sin restricciones)
     if (userManagementLink) userManagementLink.style.display = 'inline-block';
   }
 }
@@ -174,9 +255,6 @@ function showRoleBanner(userRole) {
   }, 12000);
 }
 
-// ============================================
-// ESTADÍSTICAS
-// ============================================
 function calculateStats() {
   const totalPersons = allData.length;
   const uniqueHouseholds = new Set(allData.map(person => person.householdId));
@@ -199,14 +277,30 @@ function updateStats() {
   document.getElementById('totalMinors').textContent = stats.minors;
 }
 
-// ============================================
-// FILTROS
-// ============================================
 function populateHouseholdFilter() {
   const householdFilter = document.getElementById('filterHousehold');
   const uniqueHouseholds = [...new Set(allData.map(p => p.household.grupoFamiliar))].sort();
   householdFilter.innerHTML = '<option value="">Todas las familias</option>' +
     uniqueHouseholds.map(household => `<option value="${household}">${household}</option>`).join('');
+}
+
+function handleLogout() {
+  if (confirm('¿Desea cerrar la sesión?')) {
+    sessionStorage.removeItem('isLoggedIn');
+    sessionStorage.removeItem('currentUser');
+    sessionStorage.removeItem('userRole');
+    sessionStorage.removeItem('isAdmin');
+    sessionStorage.removeItem('adminUser');
+    alert('Sesión cerrada exitosamente');
+    window.location.href = 'index.html';
+  }
+}
+
+function loadData() {
+  updateStats();
+  populateHouseholdFilter();
+  filteredData = [...allData];
+  displayData();
 }
 
 function filterData() {
@@ -242,9 +336,6 @@ function disabilityMatches(person, disabilityFilter) {
          (disabilityFilter === 'false' && !person.flags?.hasDisability);
 }
 
-// ============================================
-// TABLA DE DATOS
-// ============================================
 function displayData() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -257,32 +348,14 @@ function displayData() {
     return;
   }
 
-  tbody.innerHTML = pageData.map(person => createTableRow(person, currentUserRole)).join('');
+  tbody.innerHTML = pageData.map(person => createTableRow(person)).join('');
   document.getElementById('resultCount').textContent = `${filteredData.length} resultado${filteredData.length !== 1 ? 's' : ''}`;
 }
 
-function createTableRow(person, userRole) {
+function createTableRow(person) {
   const direccion = person.household.direccion || {};
   const direccionCompleta = [direccion.calle, direccion.numero, direccion.barrio].filter(Boolean).join(' ');
   const fechaRegistro = person.creadoEn.toDate().toLocaleDateString('es-AR');
-
-  // Botones según el rol
-  let actionButtons = '';
-  
-  if (userRole === 'lectura') {
-    actionButtons = `<button class="btn btn-secondary btn-small" onclick="viewDetails('${person.id}', true)">Consultar</button>`;
-  } else if (userRole === 'operador') {
-    actionButtons = `
-      <button class="btn btn-primary btn-small" onclick="viewDetails('${person.id}', false)">Ver</button>
-      <button class="btn btn-danger btn-small" onclick="deletePerson('${person.id}', true)">Eliminar</button>
-    `;
-  } else {
-    // admin
-    actionButtons = `
-      <button class="btn btn-primary btn-small" onclick="viewDetails('${person.id}', false)">Ver</button>
-      <button class="btn btn-danger btn-small" onclick="deletePerson('${person.id}', false)">Eliminar</button>
-    `;
-  }
 
   return `
     <tr>
@@ -295,7 +368,10 @@ function createTableRow(person, userRole) {
       <td>${formatDisabilityBadge(person)}</td>
       <td>${formatBenefitBadge(person)}</td>
       <td>${fechaRegistro}</td>
-      <td>${actionButtons}</td>
+      <td>
+        <button class="btn btn-primary btn-small" onclick="viewDetails('${person.id}')">Ver</button>
+        <button class="btn btn-danger btn-small" onclick="deletePerson('${person.id}')">Eliminar</button>
+      </td>
     </tr>
   `;
 }
@@ -316,18 +392,12 @@ function formatBenefitBadge(person) {
   return '<span class="status-badge status-disabled">No</span>';
 }
 
-// ============================================
-// ACCIONES
-// ============================================
-function viewDetails(personId, isReadOnly) {
+// Funciones de acción
+window.viewDetails = function(personId) {
   const person = allData.find(p => p.id === personId);
   if (!person) return;
   
-  const readOnlyWarning = isReadOnly ? '\n\n⚠️ Usuario de solo lectura - No puede modificar datos' : '';
-  
   const details = [
-    isReadOnly ? '=== CONSULTA DE DATOS (SOLO LECTURA) ===' : 'Detalles completos:',
-    '',
     `Nombre: ${person.nombre} ${person.apellido}`,
     `DNI: ${person.dni}`,
     `Edad: ${person.edad}`,
@@ -336,69 +406,37 @@ function viewDetails(personId, isReadOnly) {
     `Grupo Familiar: ${person.household.grupoFamiliar}`,
     `Dirección: ${[person.household.direccion?.calle, person.household.direccion?.numero, person.household.direccion?.barrio].filter(Boolean).join(' ')}`,
     `Discapacidad: ${person.flags?.hasDisability ? 'Sí - ' + (person.disability?.tipo || 'N/E') : 'No'}`,
-    `Beneficios: ${person.flags?.hasBenefit ? person.benefit?.nombre || 'Sí' : 'No'}`,
-    readOnlyWarning
+    `Beneficios: ${person.flags?.hasBenefit ? person.benefit?.nombre || 'Sí' : 'No'}`
   ].join('\n');
   
-  alert(details);
-}
+  alert(`Detalles completos:\n\n${details}`);
+};
 
-function deletePerson(personId, needsConfirmation) {
-  const person = allData.find(p => p.id === personId);
-  if (!person) return;
-  
-  const message = needsConfirmation 
-    ? `⚠️ CONFIRMACIÓN DE OPERADOR\n\nEstá a punto de eliminar:\n${person.nombre} ${person.apellido} (DNI: ${person.dni})\n\nEsta acción no se puede deshacer.\n\n¿Confirma la eliminación?`
-    : `¿Está seguro de que desea eliminar este registro?\n\n${person.nombre} ${person.apellido}`;
-  
-  if (confirm(message)) {
+window.deletePerson = function(personId) {
+  if (confirm('¿Está seguro de que desea eliminar este registro?')) {
     allData = allData.filter(p => p.id !== personId);
     loadData();
-    const user = sessionStorage.getItem('currentUser');
-    alert(`✅ Registro eliminado${needsConfirmation ? ' por operador: ' + user : ' exitosamente'}`);
+    alert('Registro eliminado exitosamente');
   }
-}
+};
 
-function exportData() {
-  const userRole = sessionStorage.getItem('userRole');
-  
-  if (userRole === 'lectura') {
-    alert('❌ ACCESO DENEGADO\n\nUsuarios de solo lectura no pueden exportar datos.\n\nContacte a un administrador.');
-    return;
-  }
-  
+window.exportData = function() {
   alert('Función de exportación (requiere configuración adicional)');
-}
+};
 
-// ============================================
-// CARGA INICIAL
-// ============================================
-function loadData() {
-  updateStats();
-  populateHouseholdFilter();
-  filteredData = [...allData];
-  displayData();
-}
-
-// ============================================
-// EVENT LISTENERS
-// ============================================
+// Event listeners
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('searchInput').addEventListener('input', filterData);
   document.getElementById('filterRelation').addEventListener('change', filterData);
   document.getElementById('filterDisability').addEventListener('change', filterData);
   document.getElementById('filterHousehold').addEventListener('change', filterData);
 
+  // Inicializar
   if (checkAuth()) {
     loadData();
   }
 });
 
-// ============================================
-// FUNCIONES GLOBALES (para onclick en HTML)
-// ============================================
-window.viewDetails = viewDetails;
-window.deletePerson = deletePerson;
-window.exportData = exportData;
+// Funciones globales
 window.handleLogout = handleLogout;
 window.loadData = loadData;
