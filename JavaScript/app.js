@@ -1,4 +1,4 @@
-// js/app.js - VERSIÓN LOCALSTORAGE
+// js/app.js - VERSIÓN LOCALSTORAGE CON SELECTOR DE FAMILIAS
 const $ = (id) => document.getElementById(id);
 const statusEl = $("status");
 
@@ -58,6 +58,130 @@ function getFromLocalStorage(key) {
 
 function generateId(prefix) {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+// ============================================
+// CARGAR FAMILIAS EXISTENTES
+// ============================================
+function cargarFamiliasExistentes() {
+  const households = getFromLocalStorage('cic_households') || {};
+  const selectFamilia = $('familiaExistente');
+  
+  if (!selectFamilia) return;
+  
+  // Limpiar selector
+  selectFamilia.innerHTML = '<option value="">— Crear nueva familia —</option>';
+  
+  // Agregar familias existentes
+  const familias = Object.values(households).sort((a, b) => 
+    (a.grupoFamiliar || '').localeCompare(b.grupoFamiliar || '')
+  );
+  
+  familias.forEach(familia => {
+    const miembrosCount = familia.miembros ? familia.miembros.length : 0;
+    const option = document.createElement('option');
+    option.value = familia.id;
+    option.textContent = `${familia.grupoFamiliar || 'Sin nombre'} (${miembrosCount} miembro${miembrosCount !== 1 ? 's' : ''})`;
+    selectFamilia.appendChild(option);
+  });
+  
+  console.log(`✅ Cargadas ${familias.length} familias existentes`);
+}
+
+function onFamiliaExistenteChange() {
+  const selectFamilia = $('familiaExistente');
+  const hhIdInput = $('hhId');
+  const grupoFamiliarInput = $('grupoFamiliar');
+  const nuevaFamiliaSection = $('nuevaFamiliaSection');
+  
+  if (selectFamilia.value) {
+    // Familia existente seleccionada
+    hhIdInput.value = selectFamilia.value;
+    
+    // Cargar datos de la familia
+    const households = getFromLocalStorage('cic_households') || {};
+    const familia = households[selectFamilia.value];
+    
+    if (familia) {
+      grupoFamiliarInput.value = familia.grupoFamiliar || '';
+      $('vivienda').value = familia.vivienda || '';
+      $('calle').value = familia.direccion?.calle || '';
+      $('numero').value = familia.direccion?.numero || '';
+      $('barrio').value = familia.direccion?.barrio || '';
+      $('ciudad').value = familia.direccion?.ciudad || 'Rosario';
+      $('provincia').value = familia.direccion?.provincia || 'Santa Fe';
+      
+      // Deshabilitar campos de household (ya existen)
+      nuevaFamiliaSection.style.opacity = '0.6';
+      nuevaFamiliaSection.querySelectorAll('input, select').forEach(input => {
+        if (input.id !== 'grupoFamiliar') {
+          input.disabled = true;
+        }
+      });
+      
+      // Mostrar info de la familia
+      mostrarInfoFamilia(familia);
+    }
+  } else {
+    // Nueva familia
+    hhIdInput.value = '';
+    grupoFamiliarInput.value = '';
+    $('vivienda').value = '';
+    $('calle').value = '';
+    $('numero').value = '';
+    $('barrio').value = '';
+    $('ciudad').value = 'Rosario';
+    $('provincia').value = 'Santa Fe';
+    
+    // Habilitar campos
+    nuevaFamiliaSection.style.opacity = '1';
+    nuevaFamiliaSection.querySelectorAll('input, select').forEach(input => {
+      input.disabled = false;
+    });
+    
+    // Ocultar info de familia
+    const infoDiv = $('infoFamiliaExistente');
+    if (infoDiv) infoDiv.remove();
+  }
+}
+
+function mostrarInfoFamilia(familia) {
+  // Remover info anterior si existe
+  const infoAnterior = $('infoFamiliaExistente');
+  if (infoAnterior) infoAnterior.remove();
+  
+  // Crear div con info
+  const infoDiv = document.createElement('div');
+  infoDiv.id = 'infoFamiliaExistente';
+  infoDiv.style.cssText = `
+    background: #e8f4f8;
+    border: 2px solid #3498db;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 15px 0;
+  `;
+  
+  const miembros = familia.miembros || [];
+  const miembrosList = miembros.length > 0 
+    ? `<ul style="margin: 10px 0; padding-left: 20px;">
+        ${miembros.map(m => `<li>${m.nombre} ${m.apellido} (${m.relacionHogar}) - DNI: ${m.dni}</li>`).join('')}
+       </ul>`
+    : '<p style="margin: 10px 0;">No hay miembros registrados aún.</p>';
+  
+  infoDiv.innerHTML = `
+    <strong style="color: #2c3e50;">ℹ️ Familia Seleccionada:</strong>
+    <p style="margin: 10px 0;"><strong>${familia.grupoFamiliar || 'Sin nombre'}</strong></p>
+    <p style="margin: 5px 0; font-size: 14px;">Dirección: ${[familia.direccion?.calle, familia.direccion?.numero, familia.direccion?.barrio].filter(Boolean).join(', ') || 'No especificada'}</p>
+    <p style="margin: 10px 0; font-weight: bold;">Miembros actuales (${miembros.length}):</p>
+    ${miembrosList}
+    <p style="margin: 10px 0 0 0; font-size: 13px; color: #666;">
+      💡 La nueva persona se agregará a esta familia. Los datos de dirección están prellenados.
+    </p>
+  `;
+  
+  // Insertar después del selector
+  const selectFamilia = $('familiaExistente');
+  selectFamilia.parentElement.parentElement.insertBefore(infoDiv, selectFamilia.parentElement.nextSibling);
 }
 
 // ============================================
@@ -248,6 +372,15 @@ document.addEventListener('DOMContentLoaded', function() {
       e.target.setSelectionRange(cursorPos + diff, cursorPos + diff);
     });
   }
+  
+  // Cargar familias existentes
+  cargarFamiliasExistentes();
+  
+  // Event listener para selector de familia
+  const selectFamilia = $('familiaExistente');
+  if (selectFamilia) {
+    selectFamilia.addEventListener('change', onFamiliaExistenteChange);
+  }
 });
 
 // SUBMIT
@@ -273,6 +406,9 @@ document.getElementById("formulario").addEventListener("submit", function(e) {
     
     e.target.reset();
     $("hhId").value = hhId; // seguir sumando al mismo hogar
+    
+    // Recargar familias existentes
+    cargarFamiliasExistentes();
     
     // Scroll al mensaje de éxito
     statusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });

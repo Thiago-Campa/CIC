@@ -26,10 +26,19 @@
       <fieldset>
         <legend>Grupo familiar (Household)</legend>
         <div class="row">
+          <div class="col-6">
+            <label for="familiaExistente">¿Agregar a una familia existente?</label>
+            <select id="familiaExistente">
+              <option value="">— Crear nueva familia —</option>
+            </select>
+            <div class="hint">Seleccione una familia existente o cree una nueva</div>
+          </div>
+        </div>
+        <div class="row" id="nuevaFamiliaSection">
           <div class="col-3">
-            <label for="hhId">Usar Household existente (opcional)</label>
-            <input id="hhId" placeholder="householdId (si ya existe)" />
-            <div class="hint">Si lo dejás vacío, se crea uno nuevo.</div>
+            <label for="hhId">ID de Household (automático)</label>
+            <input id="hhId" placeholder="Se genera automáticamente" readonly style="background: #f5f5f5;" />
+            <div class="hint">Este campo se completa solo</div>
           </div>
           <div class="col-3">
             <label for="grupoFamiliar">Nombre de grupo familiar</label>

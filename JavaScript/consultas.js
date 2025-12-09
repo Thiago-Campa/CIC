@@ -11,6 +11,7 @@ const mockConsultas = [
     id: 'consulta_001',
     personId: '1',
     personaNombre: 'Juan Pérez',
+    personDni: '12345678',
     householdId: 'household_1',
     fechaCreacion: { toDate: () => new Date('2024-12-01') },
     tipo: 'espontanea',
@@ -36,6 +37,7 @@ const mockConsultas = [
     id: 'consulta_002',
     personId: '2',
     personaNombre: 'María García',
+    personDni: '87654321',
     householdId: 'household_1',
     fechaCreacion: { toDate: () => new Date('2024-12-03') },
     tipo: 'derivacion',
@@ -60,6 +62,7 @@ const mockConsultas = [
     id: 'consulta_003',
     personId: '4',
     personaNombre: 'Ana López',
+    personDni: '55667788',
     householdId: 'household_2',
     fechaCreacion: { toDate: () => new Date('2024-12-04') },
     tipo: 'espontanea',
@@ -81,6 +84,7 @@ const mockConsultas = [
     id: 'consulta_004',
     personId: '5',
     personaNombre: 'Elena López',
+    personDni: '33445566',
     householdId: 'household_2',
     fechaCreacion: { toDate: () => new Date('2024-12-02') },
     tipo: 'derivacion',
@@ -106,6 +110,7 @@ const mockConsultas = [
     id: 'consulta_005',
     personId: '3',
     personaNombre: 'Carlos Pérez',
+    personDni: '11223344',
     householdId: 'household_1',
     fechaCreacion: { toDate: () => new Date('2024-12-05') },
     tipo: 'espontanea',
@@ -129,6 +134,7 @@ const mockConsultas = [
     id: 'consulta_006',
     personId: '1',
     personaNombre: 'Juan Pérez',
+    personDni: '12345678',
     householdId: 'household_1',
     fechaCreacion: { toDate: () => new Date('2024-11-15') },
     tipo: 'espontanea',
@@ -153,13 +159,13 @@ const mockConsultas = [
   }
 ];
 
-// Profesionales mock (para el filtro)
+// Profesionales mock (con teléfonos para WhatsApp)
 const mockProfesionalesSimple = [
-  { id: 'prof_001', nombre: 'María González' },
-  { id: 'prof_002', nombre: 'Carlos Rodríguez' },
-  { id: 'prof_003', nombre: 'Ana Martínez' },
-  { id: 'prof_004', nombre: 'Jorge López' },
-  { id: 'prof_005', nombre: 'Laura Fernández' }
+  { id: 'prof_001', nombre: 'María González', telefono: '341-1234567' },
+  { id: 'prof_002', nombre: 'Carlos Rodríguez', telefono: '341-7654321' },
+  { id: 'prof_003', nombre: 'Ana Martínez', telefono: '341-5556677' },
+  { id: 'prof_004', nombre: 'Jorge López', telefono: '341-9998877' },
+  { id: 'prof_005', nombre: 'Laura Fernández', telefono: '341-4443322' }
 ];
 
 // ============================================
@@ -169,6 +175,84 @@ let allConsultas = USE_MOCK_DATA ? mockConsultas : [];
 let filteredConsultas = [];
 let currentConsultaId = null;
 let currentUserRole = null;
+
+// ============================================
+// FUNCIÓN: NOTIFICAR POR WHATSAPP
+// ============================================
+function notificarPorWhatsApp(consultaId) {
+  const consulta = allConsultas.find(c => c.id === consultaId);
+  if (!consulta) {
+    alert('❌ No se encontró la consulta');
+    return;
+  }
+  
+  if (!consulta.profesionalAsignado) {
+    alert('❌ Esta consulta no tiene profesional asignado');
+    return;
+  }
+  
+  const profesional = mockProfesionalesSimple.find(p => p.id === consulta.profesionalAsignado);
+  
+  if (!profesional || !profesional.telefono) {
+    alert('❌ No se encontró el teléfono del profesional');
+    return;
+  }
+  
+  const telefonoLimpio = profesional.telefono.replace(/\D/g, '');
+  
+  const prioridadEmoji = {
+    'urgente': '🚨',
+    'alta': '⚠️',
+    'media': 'ℹ️',
+    'baja': '📋'
+  };
+  
+  const mensaje = `${prioridadEmoji[consulta.prioridad] || '📋'} *Notificación de Caso - CIC Pavón Arriba*
+
+*Paciente:* ${consulta.personaNombre}
+*DNI:* ${consulta.personDni || 'N/A'}
+*Motivo:* ${consulta.motivo}
+*Prioridad:* ${consulta.prioridad.toUpperCase()}
+*Estado actual:* ${consulta.estado.toUpperCase()}
+*Tipo:* ${consulta.tipo === 'derivacion' ? 'Derivación Institucional' : 'Demanda Espontánea'}
+${consulta.derivadoPor ? `*Derivado por:* ${consulta.derivadoPor}` : ''}
+
+*Descripción:*
+${consulta.descripcion}
+
+*Fecha de creación:* ${consulta.fechaCreacion.toDate().toLocaleDateString('es-AR')}
+
+Por favor confirmar recepción.
+
+_Mensaje automático del Sistema CIC_`;
+
+  const mensajeCodificado = encodeURIComponent(mensaje);
+  const whatsappUrl = `https://api.whatsapp.com/send?phone=54${telefonoLimpio}&text=${mensajeCodificado}`;
+  
+  // Abrir WhatsApp
+  window.open(whatsappUrl, '_blank');
+  
+  // Confirmación visual
+  const confirmacion = document.createElement('div');
+  confirmacion.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #25D366;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 10000;
+    font-weight: bold;
+  `;
+  confirmacion.textContent = `✅ WhatsApp abierto para ${profesional.nombre}`;
+  document.body.appendChild(confirmacion);
+  
+  setTimeout(() => {
+    confirmacion.remove();
+  }, 3000);
+}
 
 // ============================================
 // AUTENTICACIÓN
@@ -311,6 +395,12 @@ function createTableRow(consulta) {
     ? '<span class="status-badge" style="background: #e7f3ff; color: #004085;">Derivación</span>'
     : '<span class="status-badge" style="background: #f8f9fa; color: #495057;">Espontánea</span>';
 
+  // Botón de WhatsApp (solo si hay profesional asignado y no es usuario de solo lectura)
+  let whatsappButton = '';
+  if (consulta.profesionalAsignado && currentUserRole !== 'lectura') {
+    whatsappButton = `<button class="btn btn-success btn-small" onclick="notificarPorWhatsApp('${consulta.id}')" title="Notificar por WhatsApp">📱</button>`;
+  }
+
   // Botones según el rol
   let actionButtons = '';
   
@@ -318,16 +408,18 @@ function createTableRow(consulta) {
     // SOLO LECTURA: Solo ver
     actionButtons = `<button class="btn btn-secondary btn-small" onclick="verDetalles('${consulta.id}')">Ver</button>`;
   } else if (currentUserRole === 'operador') {
-    // OPERADOR: Ver y cambiar estado con confirmación
+    // OPERADOR: Ver, cambiar estado y WhatsApp
     actionButtons = `
       <button class="btn btn-primary btn-small" onclick="verDetalles('${consulta.id}')">Ver</button>
       <button class="btn btn-secondary btn-small" onclick="abrirModalEstadoOperador('${consulta.id}')">Cambiar Estado</button>
+      ${whatsappButton}
     `;
   } else {
     // ADMIN: Acceso completo
     actionButtons = `
       <button class="btn btn-primary btn-small" onclick="verDetalles('${consulta.id}')">Ver</button>
       <button class="btn btn-secondary btn-small" onclick="abrirModalEstado('${consulta.id}')">Cambiar Estado</button>
+      ${whatsappButton}
     `;
   }
 
@@ -366,6 +458,39 @@ function getPrioridadBadge(prioridad) {
   };
   const p = prioridades[prioridad] || prioridades['media'];
   return `<span class="status-badge" style="background: ${p.color}; color: ${p.text};">${p.label}</span>`;
+}
+
+// ============================================
+// FUNCIÓN: RECALCULAR CASOS DE PROFESIONALES
+// ============================================
+function recalcularCasosProfesionales() {
+  console.log('🔄 Recalculando casos de profesionales...');
+  
+  const consultas = JSON.parse(localStorage.getItem('mockConsultas') || '[]');
+  let profesionales = JSON.parse(localStorage.getItem('mockProfesionales') || '[]');
+  
+  // Resetear contadores
+  profesionales.forEach(prof => {
+    prof.casosActivos = 0;
+    prof.casosResueltos = 0;
+  });
+  
+  // Contar casos
+  consultas.forEach(consulta => {
+    if (!consulta.profesionalAsignado) return;
+    const prof = profesionales.find(p => p.id === consulta.profesionalAsignado);
+    if (!prof) return;
+    
+    if (['pendiente', 'en_proceso', 'notificado'].includes(consulta.estado)) {
+      prof.casosActivos++;
+    }
+    if (['resuelto', 'cerrado'].includes(consulta.estado)) {
+      prof.casosResueltos++;
+    }
+  });
+  
+  localStorage.setItem('mockProfesionales', JSON.stringify(profesionales));
+  console.log('✅ Casos recalculados');
 }
 
 // ============================================
@@ -489,6 +614,9 @@ function confirmarCambioEstado() {
   // Guardar en localStorage
   saveConsultasToLocalStorage();
   
+  // RECALCULAR CASOS DE PROFESIONALES
+  recalcularCasosProfesionales();
+  
   cerrarModalEstado();
   loadConsultas();
   
@@ -571,3 +699,4 @@ window.cerrarModalEstado = cerrarModalEstado;
 window.confirmarCambioEstado = confirmarCambioEstado;
 window.loadConsultas = loadConsultas;
 window.handleLogout = handleLogout;
+window.notificarPorWhatsApp = notificarPorWhatsApp;

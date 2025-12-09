@@ -16,8 +16,8 @@ const mockProfesionales = [
     email: 'maria.gonzalez@cic.gob.ar',
     telefono: '341-1234567',
     horarios: 'Lunes a Viernes 8-14hs',
-    casosActivos: 8,
-    casosResueltos: 45,
+    casosActivos: 0,
+    casosResueltos: 0,
     activo: true,
     creadoEn: { toDate: () => new Date('2024-01-10') }
   },
@@ -30,8 +30,8 @@ const mockProfesionales = [
     email: 'carlos.rodriguez@cic.gob.ar',
     telefono: '341-7654321',
     horarios: 'Lunes, Miércoles y Viernes 9-13hs',
-    casosActivos: 5,
-    casosResueltos: 32,
+    casosActivos: 0,
+    casosResueltos: 0,
     activo: true,
     creadoEn: { toDate: () => new Date('2024-01-15') }
   },
@@ -44,8 +44,8 @@ const mockProfesionales = [
     email: 'ana.martinez@cic.gob.ar',
     telefono: '341-5556677',
     horarios: 'Martes y Jueves 10-16hs',
-    casosActivos: 3,
-    casosResueltos: 18,
+    casosActivos: 0,
+    casosResueltos: 0,
     activo: true,
     creadoEn: { toDate: () => new Date('2024-02-01') }
   },
@@ -58,8 +58,8 @@ const mockProfesionales = [
     email: 'jorge.lopez@cic.gob.ar',
     telefono: '341-9998877',
     horarios: 'Lunes a Viernes 14-18hs',
-    casosActivos: 12,
-    casosResueltos: 67,
+    casosActivos: 0,
+    casosResueltos: 0,
     activo: true,
     creadoEn: { toDate: () => new Date('2024-01-20') }
   },
@@ -99,6 +99,52 @@ const mockProfesionales = [
 let allProfesionales = USE_MOCK_DATA ? mockProfesionales : [];
 let filteredProfesionales = [];
 let currentUserRole = null;
+
+// ============================================
+// RECALCULAR CASOS DESDE CONSULTAS
+// ============================================
+function recalcularCasosProfesionales() {
+  console.log('🔄 Recalculando casos de profesionales desde consultas...');
+  
+  // Cargar consultas
+  const consultas = JSON.parse(localStorage.getItem('mockConsultas') || '[]');
+  
+  // Resetear contadores de TODOS los profesionales
+  allProfesionales.forEach(prof => {
+    prof.casosActivos = 0;
+    prof.casosResueltos = 0;
+  });
+  
+  // Contar casos por profesional
+  consultas.forEach(consulta => {
+    if (!consulta.profesionalAsignado) return;
+    
+    const prof = allProfesionales.find(p => p.id === consulta.profesionalAsignado);
+    if (!prof) return;
+    
+    // Estados activos: pendiente, en_proceso, notificado
+    if (['pendiente', 'en_proceso', 'notificado'].includes(consulta.estado)) {
+      prof.casosActivos++;
+    }
+    
+    // Estados resueltos: resuelto, cerrado
+    if (['resuelto', 'cerrado'].includes(consulta.estado)) {
+      prof.casosResueltos++;
+    }
+  });
+  
+  // Guardar profesionales actualizados
+  saveProfesionalesToLocalStorage();
+  
+  console.log('✅ Casos recalculados:', {
+    totalConsultas: consultas.length,
+    profesionales: allProfesionales.map(p => ({
+      nombre: `${p.nombre} ${p.apellido}`,
+      activos: p.casosActivos,
+      resueltos: p.casosResueltos
+    }))
+  });
+}
 
 // ============================================
 // AUTENTICACIÓN
@@ -373,6 +419,9 @@ function loadProfesionales() {
     }
   }
   
+  // RECALCULAR CASOS AUTOMÁTICAMENTE
+  recalcularCasosProfesionales();
+  
   updateStats();
   filteredProfesionales = [...allProfesionales];
   displayProfesionales();
@@ -411,3 +460,4 @@ window.toggleEstado = toggleEstado;
 window.toggleEstadoOperador = toggleEstadoOperador;
 window.loadProfesionales = loadProfesionales;
 window.handleLogout = handleLogout;
+window.recalcularCasosProfesionales = recalcularCasosProfesionales; // Exportar para usar desde otros archivos

@@ -369,6 +369,39 @@ function buildConsultaPayload() {
 }
 
 // ============================================
+// FUNCIÓN: RECALCULAR CASOS DE PROFESIONALES
+// ============================================
+function recalcularCasosProfesionales() {
+  console.log('🔄 Recalculando casos de profesionales...');
+  
+  const consultas = JSON.parse(localStorage.getItem('mockConsultas') || '[]');
+  let profesionales = JSON.parse(localStorage.getItem('mockProfesionales') || '[]');
+  
+  // Resetear contadores
+  profesionales.forEach(prof => {
+    prof.casosActivos = 0;
+    prof.casosResueltos = 0;
+  });
+  
+  // Contar casos
+  consultas.forEach(consulta => {
+    if (!consulta.profesionalAsignado) return;
+    const prof = profesionales.find(p => p.id === consulta.profesionalAsignado);
+    if (!prof) return;
+    
+    if (['pendiente', 'en_proceso', 'notificado'].includes(consulta.estado)) {
+      prof.casosActivos++;
+    }
+    if (['resuelto', 'cerrado'].includes(consulta.estado)) {
+      prof.casosResueltos++;
+    }
+  });
+  
+  localStorage.setItem('mockProfesionales', JSON.stringify(profesionales));
+  console.log('✅ Casos recalculados');
+}
+
+// ============================================
 // GUARDAR CONSULTA
 // ============================================
 async function saveConsulta(payload) {
@@ -400,6 +433,11 @@ async function saveConsulta(payload) {
       });
       
       localStorage.setItem('mockConsultas', JSON.stringify(consultas));
+      
+      // RECALCULAR CASOS DE PROFESIONALES
+      if (payload.profesionalAsignado) {
+        recalcularCasosProfesionales();
+      }
     }
     
     const mensaje = currentUserRole === 'operador'
