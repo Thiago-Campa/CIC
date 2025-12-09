@@ -1,62 +1,443 @@
-// JavaScript/admin.js
-// Datos de prueba
-const mockData = [
-  {
-    id: '1', nombre: 'Juan', apellido: 'Pérez', dni: '12345678', edad: 35,
-    relacionHogar: 'Padre', sexo: 'Masculino', householdId: 'household_1',
-    household: { id: 'household_1', grupoFamiliar: 'Pérez-García',
-      direccion: { calle: 'San Martín', numero: '123', barrio: 'Centro' }},
-    flags: { hasDisability: false, hasBenefit: true },
-    benefit: { nombre: 'AUH' }, creadoEn: { toDate: () => new Date('2024-01-15') }
-  },
-  {
-    id: '2', nombre: 'María', apellido: 'García', dni: '87654321', edad: 32,
-    relacionHogar: 'Madre', sexo: 'Femenino', householdId: 'household_1',
-    household: { id: 'household_1', grupoFamiliar: 'Pérez-García',
-      direccion: { calle: 'San Martín', numero: '123', barrio: 'Centro' }},
-    flags: { hasDisability: true, hasBenefit: false },
-    disability: { tipo: 'Visual' }, creadoEn: { toDate: () => new Date('2024-01-15') }
-  },
-  {
-    id: '3', nombre: 'Carlos', apellido: 'Pérez', dni: '11223344', edad: 8,
-    relacionHogar: 'Hijo', sexo: 'Masculino', householdId: 'household_1',
-    household: { id: 'household_1', grupoFamiliar: 'Pérez-García',
-      direccion: { calle: 'San Martín', numero: '123', barrio: 'Centro' }},
-    flags: { hasDisability: false, hasBenefit: true },
-    benefit: { nombre: 'AUH' }, creadoEn: { toDate: () => new Date('2024-01-15') }
-  },
-  {
-    id: '4', nombre: 'Ana', apellido: 'López', dni: '55667788', edad: 67,
-    relacionHogar: 'Abuela', sexo: 'Femenino', householdId: 'household_2',
-    household: { id: 'household_2', grupoFamiliar: 'López',
-      direccion: { calle: 'Córdoba', numero: '789', barrio: 'Pichincha' }},
-    flags: { hasDisability: true, hasBenefit: true },
-    disability: { tipo: 'Motriz' }, benefit: { nombre: 'Pensión' },
-    creadoEn: { toDate: () => new Date('2024-01-20') }
-  },
-  {
-    id: '5', nombre: 'Elena', apellido: 'López', dni: '33445566', edad: 24,
-    relacionHogar: 'Nieta', sexo: 'Femenino', householdId: 'household_2',
-    household: { id: 'household_2', grupoFamiliar: 'López',
-      direccion: { calle: 'Córdoba', numero: '789', barrio: 'Pichincha' }},
-    flags: { hasDisability: false, hasBenefit: true },
-    benefit: { nombre: 'Beca Progresar' }, creadoEn: { toDate: () => new Date('2024-01-20') }
-  }
-];
+// JavaScript/admin.js - VERSIÓN LOCALSTORAGE CON DATOS MOCK
 
-let allData = mockData;
+// ============================================
+// VARIABLES GLOBALES
+// ============================================
+let allData = [];
 let filteredData = [];
 const itemsPerPage = 10;
 let currentPage = 1;
 
-// Verificar autenticación
+// ============================================
+// DATOS MOCK INICIALES
+// ============================================
+function initializeMockData() {
+  console.log('📦 Inicializando datos mock de ejemplo...');
+  
+  const mockHouseholds = {
+    'household_001': {
+      id: 'household_001',
+      grupoFamiliar: 'Familia González',
+      vivienda: 'Propia',
+      direccion: {
+        calle: 'San Martín',
+        numero: '1234',
+        barrio: 'Centro',
+        ciudad: 'Rosario',
+        provincia: 'Santa Fe'
+      },
+      miembros: [],
+      creadoEn: new Date('2024-01-15').toISOString()
+    },
+    'household_002': {
+      id: 'household_002',
+      grupoFamiliar: 'Familia Rodríguez',
+      vivienda: 'Alquilada',
+      direccion: {
+        calle: 'Belgrano',
+        numero: '567',
+        barrio: 'Alberdi',
+        ciudad: 'Rosario',
+        provincia: 'Santa Fe'
+      },
+      miembros: [],
+      creadoEn: new Date('2024-02-10').toISOString()
+    },
+    'household_003': {
+      id: 'household_003',
+      grupoFamiliar: 'Familia Martínez',
+      vivienda: 'Propia',
+      direccion: {
+        calle: 'Córdoba',
+        numero: '890',
+        barrio: 'Fisherton',
+        ciudad: 'Rosario',
+        provincia: 'Santa Fe'
+      },
+      miembros: [],
+      creadoEn: new Date('2024-03-05').toISOString()
+    }
+  };
+  
+  const mockPersons = [
+    {
+      id: 'person_001',
+      householdId: 'household_001',
+      relacionHogar: 'Padre',
+      nombre: 'Carlos',
+      apellido: 'González',
+      dni: '25678901',
+      cuit: '20-25678901-3',
+      fechaNacimiento: '1980-05-15',
+      edad: 44,
+      sexo: 'Masculino',
+      correo: 'carlos.gonzalez@email.com',
+      tel: '341-5551234',
+      ocupacion: 'Empleado de comercio',
+      estadoCivil: 'Casado/a',
+      educacion: {
+        nivelActual: 'Secundario',
+        institucion: 'Escuela Técnica N° 1',
+        estado: 'Completo',
+        anteriores: []
+      },
+      discapacidad: {
+        tiene: false,
+        tipo: '',
+        tratamientoMedico: false,
+        conCUD: false,
+        cudVencimiento: ''
+      },
+      beneficioSocial: {
+        tiene: false,
+        nombre: '',
+        organismo: '',
+        estado: ''
+      },
+      obraSocial: {
+        tiene: true,
+        nombre: 'IAPOS'
+      },
+      flags: {
+        esMayor: true,
+        hasDisability: false,
+        hasBenefit: false,
+        hasObraSocial: true
+      },
+      creadoEn: new Date('2024-01-15').toISOString()
+    },
+    {
+      id: 'person_002',
+      householdId: 'household_001',
+      relacionHogar: 'Madre',
+      nombre: 'María',
+      apellido: 'González',
+      dni: '27890123',
+      cuit: '27-27890123-4',
+      fechaNacimiento: '1982-08-20',
+      edad: 42,
+      sexo: 'Femenino',
+      correo: 'maria.gonzalez@email.com',
+      tel: '341-5551234',
+      ocupacion: 'Docente',
+      estadoCivil: 'Casado/a',
+      educacion: {
+        nivelActual: 'Universitario',
+        institucion: 'UNR',
+        estado: 'Completo',
+        anteriores: []
+      },
+      discapacidad: {
+        tiene: false,
+        tipo: '',
+        tratamientoMedico: false,
+        conCUD: false,
+        cudVencimiento: ''
+      },
+      beneficioSocial: {
+        tiene: false,
+        nombre: '',
+        organismo: '',
+        estado: ''
+      },
+      obraSocial: {
+        tiene: true,
+        nombre: 'IAPOS'
+      },
+      flags: {
+        esMayor: true,
+        hasDisability: false,
+        hasBenefit: false,
+        hasObraSocial: true
+      },
+      creadoEn: new Date('2024-01-15').toISOString()
+    },
+    {
+      id: 'person_003',
+      householdId: 'household_001',
+      relacionHogar: 'Hijo',
+      nombre: 'Lucas',
+      apellido: 'González',
+      dni: '45123456',
+      cuit: '',
+      fechaNacimiento: '2010-03-10',
+      edad: 14,
+      sexo: 'Masculino',
+      correo: '',
+      tel: '',
+      ocupacion: 'Estudiante',
+      estadoCivil: 'Soltero/a',
+      educacion: {
+        nivelActual: 'Secundario',
+        institucion: 'Escuela N° 123',
+        estado: 'Cursando',
+        anteriores: []
+      },
+      discapacidad: {
+        tiene: false,
+        tipo: '',
+        tratamientoMedico: false,
+        conCUD: false,
+        cudVencimiento: ''
+      },
+      beneficioSocial: {
+        tiene: true,
+        nombre: 'AUH',
+        organismo: 'ANSES',
+        estado: 'Activo'
+      },
+      obraSocial: {
+        tiene: true,
+        nombre: 'IAPOS'
+      },
+      flags: {
+        esMayor: false,
+        hasDisability: false,
+        hasBenefit: true,
+        hasObraSocial: true
+      },
+      creadoEn: new Date('2024-01-15').toISOString()
+    },
+    {
+      id: 'person_004',
+      householdId: 'household_002',
+      relacionHogar: 'Madre',
+      nombre: 'Ana',
+      apellido: 'Rodríguez',
+      dni: '30456789',
+      cuit: '27-30456789-5',
+      fechaNacimiento: '1985-11-25',
+      edad: 39,
+      sexo: 'Femenino',
+      correo: 'ana.rodriguez@email.com',
+      tel: '341-5557890',
+      ocupacion: 'Desempleada',
+      estadoCivil: 'Divorciado/a',
+      educacion: {
+        nivelActual: 'Secundario',
+        institucion: 'Escuela N° 45',
+        estado: 'Incompleto',
+        anteriores: []
+      },
+      discapacidad: {
+        tiene: true,
+        tipo: 'Visual',
+        tratamientoMedico: true,
+        conCUD: true,
+        cudVencimiento: '2025-06-30'
+      },
+      beneficioSocial: {
+        tiene: true,
+        nombre: 'Pensión por discapacidad',
+        organismo: 'ANSES',
+        estado: 'Activo'
+      },
+      obraSocial: {
+        tiene: true,
+        nombre: 'PAMI'
+      },
+      flags: {
+        esMayor: true,
+        hasDisability: true,
+        hasBenefit: true,
+        hasObraSocial: true
+      },
+      creadoEn: new Date('2024-02-10').toISOString()
+    },
+    {
+      id: 'person_005',
+      householdId: 'household_002',
+      relacionHogar: 'Hija',
+      nombre: 'Sofía',
+      apellido: 'Rodríguez',
+      dni: '48234567',
+      cuit: '',
+      fechaNacimiento: '2015-07-18',
+      edad: 9,
+      sexo: 'Femenino',
+      correo: '',
+      tel: '',
+      ocupacion: 'Estudiante',
+      estadoCivil: 'Soltero/a',
+      educacion: {
+        nivelActual: 'Primario',
+        institucion: 'Escuela Primaria N° 78',
+        estado: 'Cursando',
+        anteriores: []
+      },
+      discapacidad: {
+        tiene: false,
+        tipo: '',
+        tratamientoMedico: false,
+        conCUD: false,
+        cudVencimiento: ''
+      },
+      beneficioSocial: {
+        tiene: true,
+        nombre: 'AUH',
+        organismo: 'ANSES',
+        estado: 'Activo'
+      },
+      obraSocial: {
+        tiene: false,
+        nombre: ''
+      },
+      flags: {
+        esMayor: false,
+        hasDisability: false,
+        hasBenefit: true,
+        hasObraSocial: false
+      },
+      creadoEn: new Date('2024-02-10').toISOString()
+    },
+    {
+      id: 'person_006',
+      householdId: 'household_003',
+      relacionHogar: 'Abuela',
+      nombre: 'Rosa',
+      apellido: 'Martínez',
+      dni: '12345678',
+      cuit: '27-12345678-9',
+      fechaNacimiento: '1950-04-12',
+      edad: 74,
+      sexo: 'Femenino',
+      correo: '',
+      tel: '341-5553456',
+      ocupacion: 'Jubilada',
+      estadoCivil: 'Viudo/a',
+      educacion: {
+        nivelActual: 'Primario',
+        institucion: '',
+        estado: 'Completo',
+        anteriores: []
+      },
+      discapacidad: {
+        tiene: true,
+        tipo: 'Motriz',
+        tratamientoMedico: true,
+        conCUD: true,
+        cudVencimiento: '2026-12-31'
+      },
+      beneficioSocial: {
+        tiene: true,
+        nombre: 'Jubilación',
+        organismo: 'ANSES',
+        estado: 'Activo'
+      },
+      obraSocial: {
+        tiene: true,
+        nombre: 'PAMI'
+      },
+      flags: {
+        esMayor: true,
+        hasDisability: true,
+        hasBenefit: true,
+        hasObraSocial: true
+      },
+      creadoEn: new Date('2024-03-05').toISOString()
+    }
+  ];
+  
+  // Actualizar miembros en households
+  mockHouseholds['household_001'].miembros = [
+    { personId: 'person_001', relacionHogar: 'Padre', nombre: 'Carlos', apellido: 'González', dni: '25678901', cuit: '20-25678901-3', edad: 44, sexo: 'Masculino' },
+    { personId: 'person_002', relacionHogar: 'Madre', nombre: 'María', apellido: 'González', dni: '27890123', cuit: '27-27890123-4', edad: 42, sexo: 'Femenino' },
+    { personId: 'person_003', relacionHogar: 'Hijo', nombre: 'Lucas', apellido: 'González', dni: '45123456', cuit: '', edad: 14, sexo: 'Masculino' }
+  ];
+  
+  mockHouseholds['household_002'].miembros = [
+    { personId: 'person_004', relacionHogar: 'Madre', nombre: 'Ana', apellido: 'Rodríguez', dni: '30456789', cuit: '27-30456789-5', edad: 39, sexo: 'Femenino' },
+    { personId: 'person_005', relacionHogar: 'Hija', nombre: 'Sofía', apellido: 'Rodríguez', dni: '48234567', cuit: '', edad: 9, sexo: 'Femenino' }
+  ];
+  
+  mockHouseholds['household_003'].miembros = [
+    { personId: 'person_006', relacionHogar: 'Abuela', nombre: 'Rosa', apellido: 'Martínez', dni: '12345678', cuit: '27-12345678-9', edad: 74, sexo: 'Femenino' }
+  ];
+  
+  // Guardar en localStorage
+  localStorage.setItem('cic_households', JSON.stringify(mockHouseholds));
+  localStorage.setItem('cic_persons', JSON.stringify(mockPersons));
+  
+  console.log('✅ Datos mock inicializados: 3 familias, 6 personas');
+}
+
+// ============================================
+// CARGAR DATOS DESDE LOCALSTORAGE
+// ============================================
+function loadFromLocalStorage() {
+  console.log('📦 Cargando datos desde localStorage...');
+  
+  try {
+    // 1. Cargar personas
+    let persons = JSON.parse(localStorage.getItem('cic_persons') || '[]');
+    
+    // 2. Cargar households
+    let households = JSON.parse(localStorage.getItem('cic_households') || '{}');
+    
+    // 3. Si no hay datos, inicializar con mock
+    if (persons.length === 0 || Object.keys(households).length === 0) {
+      console.log('⚠️ No hay datos en localStorage, inicializando con datos de ejemplo...');
+      initializeMockData();
+      persons = JSON.parse(localStorage.getItem('cic_persons') || '[]');
+      households = JSON.parse(localStorage.getItem('cic_households') || '{}');
+    }
+    
+    // 4. Combinar datos
+    allData = persons.map(person => {
+      const household = households[person.householdId] || {
+        id: person.householdId,
+        grupoFamiliar: 'N/A',
+        direccion: {}
+      };
+      
+      return {
+        ...person,
+        household: household,
+        disability: person.discapacidad?.tiene ? {
+          tipo: person.discapacidad.tipo,
+          tratamientoMedico: person.discapacidad.tratamientoMedico,
+          conCUD: person.discapacidad.conCUD,
+          cudVencimiento: person.discapacidad.cudVencimiento
+        } : null,
+        benefit: person.beneficioSocial?.tiene ? {
+          nombre: person.beneficioSocial.nombre,
+          organismo: person.beneficioSocial.organismo,
+          estado: person.beneficioSocial.estado
+        } : null,
+        creadoEn: {
+          toDate: () => new Date(person.creadoEn)
+        }
+      };
+    });
+    
+    console.log(`✅ ${allData.length} registros cargados`);
+    
+    // Si no hay datos, mostrar mensaje
+    if (allData.length === 0) {
+      const tbody = document.getElementById('dataTableBody');
+      if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px; color: #666;"><strong>📝 No hay registros todavía</strong><br><br>Los formularios completados aparecerán aquí</td></tr>';
+      }
+    }
+    
+    loadData();
+    
+  } catch (error) {
+    console.error('❌ Error cargando desde localStorage:', error);
+    alert('Error al cargar datos: ' + error.message);
+  }
+}
+
+// ============================================
+// VERIFICAR AUTENTICACIÓN
+// ============================================
 function checkAuth() {
   const isLoggedIn = sessionStorage.getItem('isLoggedIn');
   const currentUser = sessionStorage.getItem('currentUser');
   const userRole = sessionStorage.getItem('userRole');
   const isAdmin = sessionStorage.getItem('isAdmin');
   const adminUser = sessionStorage.getItem('adminUser');
-
+  
   if ((isLoggedIn === 'true' && currentUser) || (isAdmin === 'true' && adminUser)) {
     const displayUser = currentUser || adminUser;
     const displayRole = userRole || 'admin';
@@ -85,29 +466,20 @@ function getRoleDisplay(role) {
 }
 
 function setupRolePermissions(userRole) {
-  // Mostrar banner informativo
   showRoleBanner(userRole);
   
-  // Obtener elementos que pueden ser restringidos
   const userManagementLink = document.getElementById('userManagementLink');
   const exportButton = document.querySelector('[onclick="exportData()"]');
   
   if (userRole === 'lectura') {
-    // SOLO LECTURA: Máximas restricciones
-    
-    // 1. Ocultar gestión de usuarios
     if (userManagementLink) userManagementLink.style.display = 'none';
-    
-    // 2. Ocultar botón de exportar
     if (exportButton) exportButton.style.display = 'none';
     
-    // 3. Modificar función createTableRow para quitar botón eliminar
     window.originalCreateTableRow = createTableRow;
     window.createTableRow = function(person) {
       const direccion = person.household.direccion || {};
       const direccionCompleta = [direccion.calle, direccion.numero, direccion.barrio].filter(Boolean).join(' ');
       const fechaRegistro = person.creadoEn.toDate().toLocaleDateString('es-AR');
-
       return `
         <tr>
           <td><strong>${person.nombre} ${person.apellido}</strong></td>
@@ -126,7 +498,6 @@ function setupRolePermissions(userRole) {
       `;
     };
     
-    // 4. Función especial de consulta para solo lectura
     window.viewDetailsReadOnly = function(personId) {
       const person = allData.find(p => p.id === personId);
       if (!person) return;
@@ -136,6 +507,7 @@ function setupRolePermissions(userRole) {
         ``,
         `Nombre: ${person.nombre} ${person.apellido}`,
         `DNI: ${person.dni}`,
+        `CUIT: ${person.cuit || 'N/A'}`,
         `Edad: ${person.edad}`,
         `Sexo: ${person.sexo}`,
         `Relación: ${person.relacionHogar}`,
@@ -150,24 +522,18 @@ function setupRolePermissions(userRole) {
       alert(details);
     };
     
-    // 5. Deshabilitar exportación
     window.exportData = function() {
       alert('❌ ACCESO DENEGADO\n\nUsuarios de solo lectura no pueden exportar datos.\n\nContacte a un administrador.');
     };
     
   } else if (userRole === 'operador') {
-    // OPERADOR: Restricciones medias
-    
-    // 1. Ocultar gestión de usuarios
     if (userManagementLink) userManagementLink.style.display = 'none';
     
-    // 2. Modificar función createTableRow para cambiar el botón eliminar
     window.originalCreateTableRow = createTableRow;
     window.createTableRow = function(person) {
       const direccion = person.household.direccion || {};
       const direccionCompleta = [direccion.calle, direccion.numero, direccion.barrio].filter(Boolean).join(' ');
       const fechaRegistro = person.creadoEn.toDate().toLocaleDateString('es-AR');
-
       return `
         <tr>
           <td><strong>${person.nombre} ${person.apellido}</strong></td>
@@ -187,7 +553,6 @@ function setupRolePermissions(userRole) {
       `;
     };
     
-    // 3. Función especial de eliminación para operadores
     window.deletePersonOperator = function(personId) {
       const person = allData.find(p => p.id === personId);
       if (!person) return;
@@ -195,14 +560,20 @@ function setupRolePermissions(userRole) {
       const confirmMessage = `⚠️ CONFIRMACIÓN DE OPERADOR\n\nEstá a punto de eliminar:\n${person.nombre} ${person.apellido} (DNI: ${person.dni})\n\nEsta acción no se puede deshacer.\n\n¿Confirma la eliminación?`;
       
       if (confirm(confirmMessage)) {
+        // Eliminar de allData
         allData = allData.filter(p => p.id !== personId);
+        
+        // Eliminar de localStorage
+        let persons = JSON.parse(localStorage.getItem('cic_persons') || '[]');
+        persons = persons.filter(p => p.id !== personId);
+        localStorage.setItem('cic_persons', JSON.stringify(persons));
+        
         loadData();
         alert(`✅ Registro eliminado por operador: ${sessionStorage.getItem('currentUser')}`);
       }
     };
     
   } else if (userRole === 'admin') {
-    // ADMINISTRADOR: Acceso completo (sin restricciones)
     if (userManagementLink) userManagementLink.style.display = 'inline-block';
   }
 }
@@ -255,6 +626,9 @@ function showRoleBanner(userRole) {
   }, 12000);
 }
 
+// ============================================
+// ESTADÍSTICAS
+// ============================================
 function calculateStats() {
   const totalPersons = allData.length;
   const uniqueHouseholds = new Set(allData.map(person => person.householdId));
@@ -263,7 +637,7 @@ function calculateStats() {
   const withDisabilities = allData.filter(p => p.flags?.hasDisability).length;
   const withBenefits = allData.filter(p => p.flags?.hasBenefit).length;
   const minors = allData.filter(p => p.edad && p.edad < 18).length;
-
+  
   return { totalHouseholds, totalPersons, averageSize, withDisabilities, withBenefits, minors };
 }
 
@@ -280,17 +654,17 @@ function updateStats() {
 function populateHouseholdFilter() {
   const householdFilter = document.getElementById('filterHousehold');
   const uniqueHouseholds = [...new Set(allData.map(p => p.household.grupoFamiliar))].sort();
+  
   householdFilter.innerHTML = '<option value="">Todas las familias</option>' +
     uniqueHouseholds.map(household => `<option value="${household}">${household}</option>`).join('');
 }
 
+// ============================================
+// FILTROS Y VISUALIZACIÓN
+// ============================================
 function handleLogout() {
   if (confirm('¿Desea cerrar la sesión?')) {
-    sessionStorage.removeItem('isLoggedIn');
-    sessionStorage.removeItem('currentUser');
-    sessionStorage.removeItem('userRole');
-    sessionStorage.removeItem('isAdmin');
-    sessionStorage.removeItem('adminUser');
+    sessionStorage.clear();
     alert('Sesión cerrada exitosamente');
     window.location.href = 'index.html';
   }
@@ -308,7 +682,7 @@ function filterData() {
   const relationFilter = document.getElementById('filterRelation').value;
   const disabilityFilter = document.getElementById('filterDisability').value;
   const householdFilter = document.getElementById('filterHousehold').value;
-
+  
   filteredData = allData.filter(person => {
     const matchesSearch = searchMatches(person, searchTerm);
     const matchesRelation = !relationFilter || person.relacionHogar === relationFilter;
@@ -317,7 +691,7 @@ function filterData() {
     
     return matchesSearch && matchesRelation && matchesDisability && matchesHousehold;
   });
-
+  
   currentPage = 1;
   displayData();
 }
@@ -325,7 +699,7 @@ function filterData() {
 function searchMatches(person, searchTerm) {
   if (!searchTerm) return true;
   return [
-    person.nombre, person.apellido, person.dni, person.household.grupoFamiliar,
+    person.nombre, person.apellido, person.dni, person.cuit || '', person.household.grupoFamiliar,
     person.household.direccion?.calle || '', person.household.direccion?.barrio || ''
   ].some(field => field.toLowerCase().includes(searchTerm));
 }
@@ -342,12 +716,18 @@ function displayData() {
   const pageData = filteredData.slice(startIndex, endIndex);
   const tbody = document.getElementById('dataTableBody');
   
-  if (pageData.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="10" class="loading">No se encontraron resultados</td></tr>';
+  if (pageData.length === 0 && allData.length > 0) {
+    tbody.innerHTML = '<tr><td colspan="10" class="loading">No se encontraron resultados con los filtros aplicados</td></tr>';
     document.getElementById('resultCount').textContent = '0 resultados';
     return;
   }
-
+  
+  if (allData.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px; color: #666;"><strong>📝 No hay registros todavía</strong><br><br>Los formularios completados aparecerán aquí</td></tr>';
+    document.getElementById('resultCount').textContent = '0 resultados';
+    return;
+  }
+  
   tbody.innerHTML = pageData.map(person => createTableRow(person)).join('');
   document.getElementById('resultCount').textContent = `${filteredData.length} resultado${filteredData.length !== 1 ? 's' : ''}`;
 }
@@ -356,7 +736,7 @@ function createTableRow(person) {
   const direccion = person.household.direccion || {};
   const direccionCompleta = [direccion.calle, direccion.numero, direccion.barrio].filter(Boolean).join(' ');
   const fechaRegistro = person.creadoEn.toDate().toLocaleDateString('es-AR');
-
+  
   return `
     <tr>
       <td><strong>${person.nombre} ${person.apellido}</strong></td>
@@ -392,7 +772,9 @@ function formatBenefitBadge(person) {
   return '<span class="status-badge status-disabled">No</span>';
 }
 
-// Funciones de acción
+// ============================================
+// FUNCIONES DE ACCIÓN
+// ============================================
 window.viewDetails = function(personId) {
   const person = allData.find(p => p.id === personId);
   if (!person) return;
@@ -400,6 +782,7 @@ window.viewDetails = function(personId) {
   const details = [
     `Nombre: ${person.nombre} ${person.apellido}`,
     `DNI: ${person.dni}`,
+    `CUIT: ${person.cuit || 'N/A'}`,
     `Edad: ${person.edad}`,
     `Sexo: ${person.sexo}`,
     `Relación: ${person.relacionHogar}`,
@@ -414,7 +797,14 @@ window.viewDetails = function(personId) {
 
 window.deletePerson = function(personId) {
   if (confirm('¿Está seguro de que desea eliminar este registro?')) {
+    // Eliminar de allData
     allData = allData.filter(p => p.id !== personId);
+    
+    // Eliminar de localStorage
+    let persons = JSON.parse(localStorage.getItem('cic_persons') || '[]');
+    persons = persons.filter(p => p.id !== personId);
+    localStorage.setItem('cic_persons', JSON.stringify(persons));
+    
     loadData();
     alert('Registro eliminado exitosamente');
   }
@@ -424,16 +814,18 @@ window.exportData = function() {
   alert('Función de exportación (requiere configuración adicional)');
 };
 
-// Event listeners
+// ============================================
+// INICIALIZACIÓN
+// ============================================
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('searchInput').addEventListener('input', filterData);
   document.getElementById('filterRelation').addEventListener('change', filterData);
   document.getElementById('filterDisability').addEventListener('change', filterData);
   document.getElementById('filterHousehold').addEventListener('change', filterData);
-
+  
   // Inicializar
   if (checkAuth()) {
-    loadData();
+    loadFromLocalStorage(); // CARGAR DESDE LOCALSTORAGE
   }
 });
 

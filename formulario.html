@@ -90,6 +90,11 @@
           <div class="col-2"><label for="nombre">Nombre</label><input id="nombre" required /></div>
           <div class="col-2"><label for="apellido">Apellido</label><input id="apellido" required /></div>
           <div class="col-2"><label for="dni">DNI</label><input id="dni" /></div>
+          <div class="col-3">
+         <label for="cuit">CUIT (opcional)</label>
+         <input id="cuit" placeholder="XX-XXXXXXXX-X" maxlength="13" />
+         <div class="hint">Formato: 20-12345678-9</div>
+          </div>
           <div class="col-2"><label for="fechaNacimiento">Fecha Nac.</label><input id="fechaNacimiento" type="date"/></div>
           <div class="col-2"><label for="sexo">Sexo</label>
             <select id="sexo"><option value="">—</option><option>Masculino</option><option>Femenino</option><option>Otro</option></select>
@@ -207,7 +212,7 @@
 
   <!-- Scripts -->
   <script src="../JavaScript/script.js"></script>
-  <script type="module" src="./js/app.js"></script>
+  <script src="../javaScript/app.js"></script>
   
   <script>
     // Convertir código a mayúsculas mientras escribe

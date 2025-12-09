@@ -1,12 +1,10 @@
-// js/app.js
-import {
-  db, collection, doc, addDoc, setDoc, getDoc, updateDoc,
-  serverTimestamp, arrayUnion
-} from "./firebase.js";
-
+// js/app.js - VERSIÓN LOCALSTORAGE
 const $ = (id) => document.getElementById(id);
 const statusEl = $("status");
 
+// ============================================
+// UTILIDADES
+// ============================================
 const edadFrom = (yyyyMmDd) => {
   if (!yyyyMmDd) return null;
   const fn = new Date(yyyyMmDd), h = new Date();
@@ -16,15 +14,67 @@ const edadFrom = (yyyyMmDd) => {
   return e;
 };
 
-async function ensureHousehold() {
-  const hhId = $("hhId").value.trim();
+// Validar formato CUIT (XX-XXXXXXXX-X)
+function validarCUIT(cuit) {
+  if (!cuit) return true; // Opcional
+  const regex = /^\d{2}-\d{8}-\d{1}$/;
+  return regex.test(cuit);
+}
 
-  // Si hay ID, lo busco; si no existe, lo creo con merge para no perder datos futuros
+// Formatear CUIT mientras se escribe
+function formatearCUIT(input) {
+  let value = input.replace(/\D/g, ''); // Solo números
+  if (value.length > 2) {
+    value = value.slice(0, 2) + '-' + value.slice(2);
+  }
+  if (value.length > 11) {
+    value = value.slice(0, 11) + '-' + value.slice(11, 12);
+  }
+  return value;
+}
+
+// ============================================
+// LOCALSTORAGE HELPERS
+// ============================================
+function saveToLocalStorage(key, data) {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+    return true;
+  } catch (e) {
+    console.error('Error guardando en localStorage:', e);
+    return false;
+  }
+}
+
+function getFromLocalStorage(key) {
+  try {
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : null;
+  } catch (e) {
+    console.error('Error leyendo de localStorage:', e);
+    return null;
+  }
+}
+
+function generateId(prefix) {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+// ============================================
+// HOUSEHOLD
+// ============================================
+function ensureHousehold() {
+  const hhId = $("hhId").value.trim();
+  
+  // Cargar households existentes
+  let households = getFromLocalStorage('cic_households') || {};
+  
+  // Si hay ID, actualizar o crear
   if (hhId) {
-    const hhRef = doc(db, "households", hhId);
-    const snap = await getDoc(hhRef);
-    if (!snap.exists()) {
-      await setDoc(hhRef, {
+    if (!households[hhId]) {
+      // Crear nuevo con ese ID
+      households[hhId] = {
+        id: hhId,
         grupoFamiliar: $("grupoFamiliar").value.trim() || "",
         vivienda: $("vivienda").value || "",
         direccion: {
@@ -35,29 +85,33 @@ async function ensureHousehold() {
           provincia: $("provincia").value || ""
         },
         miembros: [],
-        creadoEn: serverTimestamp()
-      }, { merge: true });
+        creadoEn: new Date().toISOString()
+      };
     } else {
-      // merge no destructivo
-      await setDoc(hhRef, {
-        grupoFamiliar: $("grupoFamiliar").value.trim() || snap.data().grupoFamiliar || "",
-        vivienda: $("vivienda").value || snap.data().vivienda || "",
+      // Actualizar existente (merge)
+      households[hhId] = {
+        ...households[hhId],
+        grupoFamiliar: $("grupoFamiliar").value.trim() || households[hhId].grupoFamiliar || "",
+        vivienda: $("vivienda").value || households[hhId].vivienda || "",
         direccion: {
-          ...(snap.data().direccion || {}),
-          calle: $("calle").value || (snap.data().direccion || {}).calle || "",
-          numero: $("numero").value || (snap.data().direccion || {}).numero || "",
-          barrio: $("barrio").value || (snap.data().direccion || {}).barrio || "",
-          ciudad: $("ciudad").value || (snap.data().direccion || {}).ciudad || "",
-          provincia: $("provincia").value || (snap.data().direccion || {}).provincia || ""
+          ...(households[hhId].direccion || {}),
+          calle: $("calle").value || households[hhId].direccion?.calle || "",
+          numero: $("numero").value || households[hhId].direccion?.numero || "",
+          barrio: $("barrio").value || households[hhId].direccion?.barrio || "",
+          ciudad: $("ciudad").value || households[hhId].direccion?.ciudad || "",
+          provincia: $("provincia").value || households[hhId].direccion?.provincia || ""
         }
-      }, { merge: true });
+      };
     }
-    return hhRef;
+    
+    saveToLocalStorage('cic_households', households);
+    return hhId;
   }
-
-  // Crear uno nuevo
-  const hhRef = doc(collection(db, "households"));
-  await setDoc(hhRef, {
+  
+  // Crear uno nuevo con ID autogenerado
+  const newId = generateId('household');
+  households[newId] = {
+    id: newId,
     grupoFamiliar: $("grupoFamiliar").value.trim() || "",
     vivienda: $("vivienda").value || "",
     direccion: {
@@ -68,19 +122,28 @@ async function ensureHousehold() {
       provincia: $("provincia").value || ""
     },
     miembros: [],
-    creadoEn: serverTimestamp()
-  });
-  return hhRef;
+    creadoEn: new Date().toISOString()
+  };
+  
+  saveToLocalStorage('cic_households', households);
+  return newId;
 }
 
+// ============================================
+// PERSON
+// ============================================
 function buildPersonPayload(householdId) {
   const edad = edadFrom($("fechaNacimiento").value);
+  const cuitValue = $("cuit").value.trim();
+  
   const payload = {
+    id: generateId('person'),
     householdId,
     relacionHogar: $("relacionHogar").value || "",
     nombre: $("nombre").value.trim(),
     apellido: $("apellido").value.trim(),
     dni: $("dni").value.trim(),
+    cuit: cuitValue || "",
     fechaNacimiento: $("fechaNacimiento").value || "",
     edad,
     sexo: $("sexo").value || "",
@@ -97,12 +160,15 @@ function buildPersonPayload(householdId) {
     discapacidad: {
       tiene: $("tieneDis").value === "true",
       tipo: $("tipoDis").value.trim(),
-      tratamientoMedico: $("tratDis").value === "true"
+      tratamientoMedico: $("tratDis").value === "true",
+      conCUD: $("conCUD") ? $("conCUD").value === "true" : false,
+      cudVencimiento: $("cudVto") ? $("cudVto").value || "" : ""
     },
     beneficioSocial: {
       tiene: $("tieneBen").value === "true",
       nombre: $("nomBen").value.trim(),
-      organismo: $("orgBen").value.trim()
+      organismo: $("orgBen").value.trim(),
+      estado: $("estBen") ? $("estBen").value || "" : ""
     },
     obraSocial: {
       tiene: $("tieneOS").value === "true",
@@ -114,92 +180,103 @@ function buildPersonPayload(householdId) {
       hasBenefit: $("tieneBen").value === "true",
       hasObraSocial: $("tieneOS").value === "true"
     },
-    creadoEn: serverTimestamp()
+    creadoEn: new Date().toISOString()
   };
-
-  // Parsear estudios anteriores (una línea por estudio: "nivel | institución | estado")
+  
+  // Parsear estudios anteriores
   const prevLines = $("anteriores").value.split("\n").map(s => s.trim()).filter(Boolean);
   for (const line of prevLines) {
     const [nivel, institucion, estado] = line.split("|").map(s => (s || "").trim());
     if (nivel || institucion || estado) {
-      payload.educacion.anteriores.push({ nivel: nivel || "", institucion: institucion || "", estado: estado || "" });
+      payload.educacion.anteriores.push({ 
+        nivel: nivel || "", 
+        institucion: institucion || "", 
+        estado: estado || "" 
+      });
     }
   }
+  
   return payload;
 }
 
-async function persistPersonGraph(hhRef, personPayload) {
-  // PERSON
-  const personRef = doc(collection(db, "persons"));
-  await setDoc(personRef, personPayload);
-
-  // EDUCATIONS (actual)
-  if (personPayload.educacion.nivelActual || personPayload.educacion.institucion || personPayload.educacion.estado) {
-    await addDoc(collection(db, "educations"), {
-      personId: personRef.id,
-      nivel: personPayload.educacion.nivelActual || "",
-      institucion: personPayload.educacion.institucion || "",
-      estado: personPayload.educacion.estado || "",
-      esActual: true
-    });
-  }
-  // EDUCATIONS (anteriores)
-  for (const e of personPayload.educacion.anteriores) {
-    await addDoc(collection(db, "educations"), {
-      personId: personRef.id, nivel: e.nivel || "", institucion: e.institucion || "",
-      estado: e.estado || "", esActual: false
-    });
-  }
-
-  // PERSON_DISABILITY
-  if (personPayload.discapacidad.tiene) {
-    await addDoc(collection(db, "person_disabilities"), {
-      personId: personRef.id,
-      tipo: personPayload.discapacidad.tipo || "",
-      tratamientoMedico: personPayload.discapacidad.tratamientoMedico || false,
-      conCUD: $("conCUD").value === "true",
-      cudVencimiento: $("cudVto").value || ""
-    });
-  }
-
-  // PERSON_BENEFIT
-  if (personPayload.beneficioSocial.tiene) {
-    await addDoc(collection(db, "person_benefits"), {
-      personId: personRef.id,
-      nombre: personPayload.beneficioSocial.nombre || "",
-      organismo: personPayload.beneficioSocial.organismo || "",
-      estado: $("estBen").value || ""
-    });
-  }
-
-  // Vincular en household.miembros (snapshot mínimo)
-  await updateDoc(hhRef, {
-    miembros: arrayUnion({
-      personId: personRef.id,
+function persistPersonToLocalStorage(householdId, personPayload) {
+  // 1. Guardar persona
+  let persons = getFromLocalStorage('cic_persons') || [];
+  persons.push(personPayload);
+  saveToLocalStorage('cic_persons', persons);
+  
+  // 2. Actualizar household con snapshot del miembro
+  let households = getFromLocalStorage('cic_households') || {};
+  if (households[householdId]) {
+    if (!households[householdId].miembros) {
+      households[householdId].miembros = [];
+    }
+    
+    households[householdId].miembros.push({
+      personId: personPayload.id,
       relacionHogar: personPayload.relacionHogar,
       nombre: personPayload.nombre,
       apellido: personPayload.apellido,
       dni: personPayload.dni,
+      cuit: personPayload.cuit,
       edad: personPayload.edad,
       sexo: personPayload.sexo
-    })
-  });
-
-  return personRef.id;
+    });
+    
+    saveToLocalStorage('cic_households', households);
+  }
+  
+  return personPayload.id;
 }
 
-// SUBMIT
-document.getElementById("formulario").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  statusEl.textContent = "Guardando...";
-  try {
-    const hhRef = await ensureHousehold();
-    const personPayload = buildPersonPayload(hhRef.id);
-    const personId = await persistPersonGraph(hhRef, personPayload);
+// ============================================
+// EVENT LISTENERS
+// ============================================
+// Auto-formatear CUIT mientras se escribe
+document.addEventListener('DOMContentLoaded', function() {
+  const cuitInput = $("cuit");
+  
+  if (cuitInput) {
+    cuitInput.addEventListener('input', function(e) {
+      const cursorPos = e.target.selectionStart;
+      const oldLength = e.target.value.length;
+      e.target.value = formatearCUIT(e.target.value);
+      const newLength = e.target.value.length;
+      
+      // Ajustar cursor después del formato
+      const diff = newLength - oldLength;
+      e.target.setSelectionRange(cursorPos + diff, cursorPos + diff);
+    });
+  }
+});
 
-    statusEl.innerHTML = `<span class="ok">✅ Guardado: household <code>${hhRef.id}</code> • person <code>${personId}</code></span>`;
+// SUBMIT
+document.getElementById("formulario").addEventListener("submit", function(e) {
+  e.preventDefault();
+  
+  // Validar CUIT antes de enviar
+  const cuitValue = $("cuit").value.trim();
+  if (cuitValue && !validarCUIT(cuitValue)) {
+    statusEl.innerHTML = `<span class="err">❌ El formato del CUIT es incorrecto. Use: XX-XXXXXXXX-X</span>`;
+    $("cuit").focus();
+    return;
+  }
+  
+  statusEl.textContent = "Guardando...";
+  
+  try {
+    const hhId = ensureHousehold();
+    const personPayload = buildPersonPayload(hhId);
+    const personId = persistPersonToLocalStorage(hhId, personPayload);
+    
+    statusEl.innerHTML = `<span class="ok">✅ Guardado exitosamente!<br>Household: <code>${hhId}</code><br>Persona: <code>${personId}</code></span>`;
+    
     e.target.reset();
-    $("hhId").value = hhRef.id; // seguir sumando al mismo hogar
+    $("hhId").value = hhId; // seguir sumando al mismo hogar
+    
+    // Scroll al mensaje de éxito
+    statusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
   } catch (err) {
     console.error(err);
     statusEl.innerHTML = `<span class="err">❌ Error: ${err.message || err}</span>`;

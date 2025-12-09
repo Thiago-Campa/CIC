@@ -13,12 +13,13 @@
     <nav class="nav-links">
       <a href="index.html">Inicio</a>
       <a href="Pages/formulario.html">Nuevo Registro</a>
+      <a href="Pages/consultas.html">Consultas/Casos</a>
+      <a href="Pages/profesionales.html">Profesionales</a>
       <a href="user-management.html" id="userManagementLink">Gestión de Usuarios</a>
-      <a href="#" onclick="exportData()">Exportar</a>
+      <a href="#" onclick="mostrarModalExportacion('formularios')">📊 Exportar</a>
       <a href="#" onclick="handleLogout()" style="background: rgba(255,255,255,0.2); border-radius: 4px;">Cerrar Sesión</a>
     </nav>
   </div>
-
   <div class="container">
     <!-- Estadísticas -->
     <div class="stats-grid">
@@ -47,7 +48,6 @@
         <div class="stat-label">Menores de Edad</div>
       </div>
     </div>
-
     <!-- Controles -->
     <div class="controls">
       <div class="controls-row">
@@ -73,7 +73,6 @@
         <button class="btn btn-primary" onclick="loadData()">Actualizar</button>
       </div>
     </div>
-
     <!-- Tabla de datos -->
     <div class="data-table">
       <div class="table-header">
@@ -106,12 +105,19 @@
         </table>
       </div>
     </div>
-
     <!-- Paginación -->
     <div class="pagination" id="pagination" style="display: none;">
     </div>
   </div>
 
+  <!-- Librerías de exportación -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  
+  <!-- Sistema de exportación -->
+  <script src="javaScript/export-system.js"></script>
+  
   <!-- Scripts separados -->
   <script src="JavaScript/admin.js"></script>
 </body>

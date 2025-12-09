@@ -5,131 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestión de Usuarios - CIC</title>
   <link rel="stylesheet" href="Styles/admin.css">
-  <style>
-    .user-form {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      margin-bottom: 2rem;
-    }
-    
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-    
-    .form-group {
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .form-group label {
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      color: #333;
-    }
-    
-    .form-group input, .form-group select {
-      padding: 0.7rem;
-      border: 2px solid #ddd;
-      border-radius: 6px;
-      font-size: 1rem;
-    }
-    
-    .form-group input:focus, .form-group select:focus {
-      outline: none;
-      border-color: #368dff;
-    }
-    
-    .role-badge {
-      padding: 0.25rem 0.75rem;
-      border-radius: 12px;
-      font-size: 0.8rem;
-      font-weight: 500;
-      text-transform: uppercase;
-    }
-    
-    .role-admin {
-      background: #dc3545;
-      color: white;
-    }
-    
-    .role-operador {
-      background: #ffc107;
-      color: #212529;
-    }
-    
-    .role-lectura {
-      background: #28a745;
-      color: white;
-    }
-    
-    .activity-log {
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      margin-top: 2rem;
-    }
-    
-    .log-entry {
-      padding: 1rem;
-      border-bottom: 1px solid #eee;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .log-entry:last-child {
-      border-bottom: none;
-    }
-    
-    .log-action {
-      font-weight: 600;
-      color: #368dff;
-    }
-    
-    .log-time {
-      color: #666;
-      font-size: 0.9rem;
-    }
-    
-    .tabs {
-      display: flex;
-      background: white;
-      border-radius: 8px 8px 0 0;
-      overflow: hidden;
-      margin-bottom: 0;
-    }
-    
-    .tab {
-      padding: 1rem 2rem;
-      background: #f8f9fa;
-      border: none;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: all 0.3s;
-    }
-    
-    .tab.active {
-      background: #368dff;
-      color: white;
-    }
-    
-    .tab-content {
-      display: none;
-      background: white;
-      padding: 2rem;
-      border-radius: 0 0 8px 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    
-    .tab-content.active {
-      display: block;
-    }
-  </style>
 </head>
 <body>
   <div class="header">
@@ -142,263 +17,82 @@
   </div>
 
   <div class="container">
-    <!-- Tabs -->
-    <div class="tabs">
-      <button class="tab active" onclick="showTab('users')">Gestión de Usuarios</button>
-      <button class="tab" onclick="showTab('logs')">Logs de Actividad</button>
-    </div>
-
-    <!-- Tab: Gestión de Usuarios -->
-    <div class="tab-content active" id="usersTab">
-      <!-- Formulario para agregar usuario -->
-      <div class="user-form">
-        <h3>Agregar Nuevo Usuario</h3>
-        <form id="userForm">
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="newUsername">Usuario</label>
-              <input type="text" id="newUsername" required>
-            </div>
-            <div class="form-group">
-              <label for="newPassword">Contraseña</label>
-              <input type="password" id="newPassword" required>
-            </div>
-            <div class="form-group">
-              <label for="newRole">Rol</label>
-              <select id="newRole" required>
-                <option value="">Seleccionar rol</option>
-                <option value="admin">Administrador</option>
-                <option value="operador">Operador</option>
-                <option value="lectura">Solo Lectura</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="newEmail">Email</label>
-              <input type="email" id="newEmail">
-            </div>
-          </div>
-          <button type="submit" class="btn btn-primary">Crear Usuario</button>
-        </form>
-      </div>
-
-      <!-- Lista de usuarios -->
-      <div class="data-table">
-        <div class="table-header">
-          <h3>Usuarios del Sistema</h3>
-          <div>
-            <span id="userCount">0 usuarios</span>
-          </div>
+    <h2>Agregar Nuevo Usuario</h2>
+    <form id="userForm" style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+        <div>
+          <label>Usuario:</label>
+          <input type="text" id="newUsername" required style="width: 100%; padding: 8px;">
         </div>
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Usuario</th>
-                <th>Rol</th>
-                <th>Email</th>
-                <th>Último Acceso</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="usersTableBody">
-              <!-- Se genera dinámicamente -->
-            </tbody>
-          </table>
+        <div>
+          <label>Contraseña:</label>
+          <input type="password" id="newPassword" required style="width: 100%; padding: 8px;">
         </div>
-      </div>
-    </div>
-
-    <!-- Tab: Logs de Actividad -->
-    <div class="tab-content" id="logsTab">
-      <div class="controls">
-        <div class="controls-row">
-          <select class="filter-select" id="logUserFilter">
-            <option value="">Todos los usuarios</option>
+        <div>
+          <label>Rol:</label>
+          <select id="newRole" required style="width: 100%; padding: 8px;">
+            <option value="">Seleccionar</option>
+            <option value="admin">Administrador</option>
+            <option value="operador">Operador</option>
+            <option value="lectura">Solo Lectura</option>
           </select>
-          <select class="filter-select" id="logActionFilter">
-            <option value="">Todas las acciones</option>
-            <option value="login">Login</option>
-            <option value="logout">Logout</option>
-            <option value="create">Crear registro</option>
-            <option value="edit">Editar registro</option>
-            <option value="delete">Eliminar registro</option>
-            <option value="export">Exportar datos</option>
-          </select>
-          <input type="date" class="filter-select" id="logDateFilter">
-          <button class="btn btn-primary" onclick="filterLogs()">Filtrar</button>
+        </div>
+        <div>
+          <label>Email:</label>
+          <input type="email" id="newEmail" style="width: 100%; padding: 8px;">
         </div>
       </div>
+      <button type="submit" class="btn btn-primary">Crear Usuario</button>
+    </form>
 
-      <div class="activity-log" id="activityLog">
-        <!-- Se genera dinámicamente -->
-      </div>
-    </div>
+    <h2>Usuarios del Sistema</h2>
+    <div id="usersList"></div>
   </div>
 
   <script>
-    // Simulación de base de datos de usuarios
-    let users = [
-      {
-        id: 1,
-        username: 'admin',
-        password: 'cic2024',
-        role: 'admin',
-        email: 'admin@cic.gob.ar',
-        lastLogin: new Date('2024-03-15T10:30:00'),
-        active: true,
-        createdAt: new Date('2024-01-01')
-      },
-      {
-        id: 2,
-        username: 'operador1',
-        password: 'op123',
-        role: 'operador',
-        email: 'operador@cic.gob.ar',
-        lastLogin: new Date('2024-03-14T14:20:00'),
-        active: true,
-        createdAt: new Date('2024-01-15')
-      },
-      {
-        id: 3,
-        username: 'consulta',
-        password: 'read123',
-        role: 'lectura',
-        email: 'consulta@cic.gob.ar',
-        lastLogin: new Date('2024-03-13T09:15:00'),
-        active: true,
-        createdAt: new Date('2024-02-01')
-      }
-    ];
+    console.log('Script cargado');
 
-    // Simulación de logs de actividad
-    let activityLogs = [
-      {
-        id: 1,
-        user: 'admin',
-        action: 'login',
-        details: 'Inicio de sesión exitoso',
-        timestamp: new Date('2024-03-15T10:30:00'),
-        ip: '127.0.0.1'
-      },
-      {
-        id: 2,
-        user: 'admin',
-        action: 'create',
-        details: 'Nuevo usuario creado: operador1',
-        timestamp: new Date('2024-03-15T10:35:00'),
-        ip: '127.0.0.1'
-      },
-      {
-        id: 3,
-        user: 'operador1',
-        action: 'login',
-        details: 'Inicio de sesión exitoso',
-        timestamp: new Date('2024-03-14T14:20:00'),
-        ip: '192.168.1.100'
-      },
-      {
-        id: 4,
-        user: 'operador1',
-        action: 'create',
-        details: 'Nuevo registro de familia creado: ID 12345',
-        timestamp: new Date('2024-03-14T14:25:00'),
-        ip: '192.168.1.100'
-      },
-      {
-        id: 5,
-        user: 'consulta',
-        action: 'export',
-        details: 'Exportación de datos CSV generada',
-        timestamp: new Date('2024-03-13T09:45:00'),
-        ip: '192.168.1.50'
-      }
-    ];
-
-    let nextUserId = 4;
-    let nextLogId = 6;
-
-    // Verificar que solo admin puede acceder
-    function checkAdminAccess() {
-      const isAdmin = sessionStorage.getItem('isAdmin');
-      const userRole = getCurrentUserRole();
-      
-      if (!isAdmin || userRole !== 'admin') {
-        alert('Solo los administradores pueden acceder a la gestión de usuarios');
-        window.location.href = 'admin.html';
-        return false;
-      }
-      return true;
-    }
-
-    function getCurrentUser() {
-      return sessionStorage.getItem('adminUser') || 'admin';
-    }
-
-    function getCurrentUserRole() {
-      const currentUser = getCurrentUser();
-      const user = users.find(u => u.username === currentUser);
-      return user ? user.role : 'admin';
-    }
-
-    // Gestión de tabs
-    function showTab(tabName) {
-      // Ocultar todos los tabs
-      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-      
-      // Mostrar el tab seleccionado
-      event.target.classList.add('active');
-      document.getElementById(tabName + 'Tab').classList.add('active');
-      
-      if (tabName === 'users') {
-        loadUsers();
-      } else if (tabName === 'logs') {
-        loadActivityLogs();
-      }
-    }
-
-    // Cargar usuarios en la tabla
+    // Cargar usuarios desde localStorage
     function loadUsers() {
-      const tbody = document.getElementById('usersTableBody');
-      const userCount = document.getElementById('userCount');
+      const stored = localStorage.getItem('cicUsers');
+      let users = [];
       
-      tbody.innerHTML = users.map(user => `
-        <tr>
-          <td><strong>${user.username}</strong></td>
-          <td><span class="role-badge role-${user.role}">${getRoleDisplay(user.role)}</span></td>
-          <td>${user.email || 'N/A'}</td>
-          <td>${user.lastLogin ? user.lastLogin.toLocaleString('es-AR') : 'Nunca'}</td>
-          <td>
-            <span class="status-badge ${user.active ? 'status-active' : 'status-disabled'}">
-              ${user.active ? 'Activo' : 'Inactivo'}
-            </span>
-          </td>
-          <td>
-            <button class="btn btn-secondary btn-small" onclick="toggleUserStatus(${user.id})">
-              ${user.active ? 'Desactivar' : 'Activar'}
-            </button>
-            <button class="btn btn-danger btn-small" onclick="deleteUser(${user.id})" 
-                    ${user.username === getCurrentUser() ? 'disabled' : ''}>
-              Eliminar
-            </button>
-          </td>
-        </tr>
-      `).join('');
+      if (stored) {
+        try {
+          users = JSON.parse(stored);
+        } catch (e) {
+          console.error('Error:', e);
+        }
+      }
       
-      userCount.textContent = `${users.length} usuario${users.length !== 1 ? 's' : ''}`;
+      // Mostrar usuarios
+      const container = document.getElementById('usersList');
+      
+      if (users.length === 0) {
+        container.innerHTML = '<p>No hay usuarios creados todavía.</p>';
+        return;
+      }
+      
+      let html = '<table class="data-table" style="width: 100%; background: white;"><thead><tr><th>Usuario</th><th>Rol</th><th>Email</th><th>Acciones</th></tr></thead><tbody>';
+      
+      users.forEach(user => {
+        html += `
+          <tr>
+            <td>${user.username}</td>
+            <td>${user.role}</td>
+            <td>${user.email || 'N/A'}</td>
+            <td>
+              <button onclick="deleteUser(${user.id})" class="btn btn-danger btn-small">Eliminar</button>
+            </td>
+          </tr>
+        `;
+      });
+      
+      html += '</tbody></table>';
+      container.innerHTML = html;
     }
 
-    function getRoleDisplay(role) {
-      const roles = {
-        'admin': 'Administrador',
-        'operador': 'Operador',
-        'lectura': 'Solo Lectura'
-      };
-      return roles[role] || role;
-    }
-
-    // Formulario de nuevo usuario
+    // Crear usuario
     document.getElementById('userForm').addEventListener('submit', function(e) {
       e.preventDefault();
       
@@ -407,179 +101,70 @@
       const role = document.getElementById('newRole').value;
       const email = document.getElementById('newEmail').value.trim();
       
-      // Verificar que el username no exista
-      if (users.find(u => u.username === username)) {
+      // Cargar usuarios existentes
+      let users = [];
+      const stored = localStorage.getItem('cicUsers');
+      if (stored) {
+        try {
+          users = JSON.parse(stored);
+        } catch (e) {
+          users = [];
+        }
+      }
+      
+      // Verificar duplicados
+      if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
         alert('Ya existe un usuario con ese nombre');
         return;
       }
       
       // Crear nuevo usuario
+      const newId = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 100;
+      
       const newUser = {
-        id: nextUserId++,
-        username,
-        password,
-        role,
+        id: newId,
+        username: username,
+        password: password,
+        role: role,
         email: email || null,
-        lastLogin: null,
         active: true,
-        createdAt: new Date()
+        createdAt: new Date().toISOString()
       };
       
       users.push(newUser);
       
-      // Agregar log
-      addLog('create', `Nuevo usuario creado: ${username} (${getRoleDisplay(role)})`);
+      // Guardar
+      localStorage.setItem('cicUsers', JSON.stringify(users));
       
-      // Limpiar formulario
+      alert('✅ Usuario creado exitosamente');
       this.reset();
-      
-      // Recargar tabla
       loadUsers();
-      
-      alert('Usuario creado exitosamente');
     });
 
-    // Activar/desactivar usuario
-    function toggleUserStatus(userId) {
-      const user = users.find(u => u.id === userId);
-      if (user) {
-        user.active = !user.active;
-        const action = user.active ? 'activado' : 'desactivado';
-        addLog('edit', `Usuario ${action}: ${user.username}`);
-        loadUsers();
-      }
-    }
-
     // Eliminar usuario
-    function deleteUser(userId) {
-      const user = users.find(u => u.id === userId);
-      if (user && user.username !== getCurrentUser()) {
-        if (confirm(`¿Está seguro de eliminar el usuario "${user.username}"?`)) {
-          users = users.filter(u => u.id !== userId);
-          addLog('delete', `Usuario eliminado: ${user.username}`);
-          loadUsers();
-        }
-      }
-    }
-
-    // Cargar logs de actividad
-    function loadActivityLogs() {
-      populateLogFilters();
-      displayLogs(activityLogs);
-    }
-
-    function populateLogFilters() {
-      const userFilter = document.getElementById('logUserFilter');
-      const uniqueUsers = [...new Set(activityLogs.map(log => log.user))];
+    function deleteUser(id) {
+      if (!confirm('¿Eliminar este usuario?')) return;
       
-      userFilter.innerHTML = '<option value="">Todos los usuarios</option>' +
-        uniqueUsers.map(user => `<option value="${user}">${user}</option>`).join('');
-    }
-
-    function displayLogs(logs) {
-      const logContainer = document.getElementById('activityLog');
+      const stored = localStorage.getItem('cicUsers');
+      if (!stored) return;
       
-      if (logs.length === 0) {
-        logContainer.innerHTML = '<div class="log-entry">No hay logs que mostrar</div>';
-        return;
-      }
+      let users = JSON.parse(stored);
+      users = users.filter(u => u.id !== id);
       
-      logContainer.innerHTML = logs.map(log => `
-        <div class="log-entry">
-          <div>
-            <span class="log-action">${getActionDisplay(log.action)}</span>
-            <span>por <strong>${log.user}</strong></span>
-            <div style="font-size: 0.9rem; color: #666; margin-top: 0.25rem;">
-              ${log.details}
-            </div>
-          </div>
-          <div class="log-time">
-            ${log.timestamp.toLocaleString('es-AR')}
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function getActionDisplay(action) {
-      const actions = {
-        'login': 'Inicio de sesión',
-        'logout': 'Cierre de sesión',
-        'create': 'Crear',
-        'edit': 'Editar',
-        'delete': 'Eliminar',
-        'export': 'Exportar'
-      };
-      return actions[action] || action;
-    }
-
-    function filterLogs() {
-      const userFilter = document.getElementById('logUserFilter').value;
-      const actionFilter = document.getElementById('logActionFilter').value;
-      const dateFilter = document.getElementById('logDateFilter').value;
-      
-      let filteredLogs = activityLogs;
-      
-      if (userFilter) {
-        filteredLogs = filteredLogs.filter(log => log.user === userFilter);
-      }
-      
-      if (actionFilter) {
-        filteredLogs = filteredLogs.filter(log => log.action === actionFilter);
-      }
-      
-      if (dateFilter) {
-        const filterDate = new Date(dateFilter);
-        filteredLogs = filteredLogs.filter(log => 
-          log.timestamp.toDateString() === filterDate.toDateString()
-        );
-      }
-      
-      displayLogs(filteredLogs);
-    }
-
-    // Agregar log de actividad
-    function addLog(action, details) {
-      const newLog = {
-        id: nextLogId++,
-        user: getCurrentUser(),
-        action,
-        details,
-        timestamp: new Date(),
-        ip: '127.0.0.1'
-      };
-      
-      activityLogs.unshift(newLog); // Agregar al inicio
-      
-      // Mantener solo los últimos 100 logs
-      if (activityLogs.length > 100) {
-        activityLogs = activityLogs.slice(0, 100);
-      }
+      localStorage.setItem('cicUsers', JSON.stringify(users));
+      loadUsers();
+      alert('Usuario eliminado');
     }
 
     // Logout
     function logout() {
-      addLog('logout', 'Cierre de sesión');
-      sessionStorage.removeItem('isAdmin');
-      sessionStorage.removeItem('adminUser');
+      sessionStorage.clear();
       window.location.href = 'index.html';
     }
 
-    // Inicialización
-    document.addEventListener('DOMContentLoaded', function() {
-      if (!checkAdminAccess()) return;
-      
-      // Agregar log de acceso
-      addLog('login', 'Acceso al panel de gestión de usuarios');
-      
-      loadUsers();
-    });
-
-    // Hacer funciones globales
-    window.showTab = showTab;
-    window.toggleUserStatus = toggleUserStatus;
-    window.deleteUser = deleteUser;
-    window.filterLogs = filterLogs;
-    window.logout = logout;
+    // Cargar al inicio
+    loadUsers();
+    console.log('Usuarios cargados');
   </script>
 </body>
 </html>

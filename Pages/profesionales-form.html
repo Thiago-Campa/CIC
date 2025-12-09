@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formulario de Profesional - CIC</title>
+  <link rel="stylesheet" href="../Styles/formulario.css">
+  <link rel="icon" href="../Icons/icono-pavon-arriba.jpeg" type="image/png">
+</head>
+
+<body>
+  <div class="volver-container">
+    <a href="profesionales.html" class="btn-volver">← Volver a Profesionales</a>
+  </div>
+
+  <div class="container">
+    <a href="../index.html">
+      <img src="../Images/PavonArriba.jpg" alt="Icono CIC" class="icono-form">
+    </a>
+    
+    <h2 id="formTitle">Agregar Profesional</h2>
+
+    <form id="profesionalForm">
+      <!-- DATOS PERSONALES -->
+      <fieldset>
+        <legend>Datos Personales</legend>
+        <div class="row">
+          <div class="col-3">
+            <label for="nombre">Nombre *</label>
+            <input id="nombre" type="text" required placeholder="Ej: María" />
+          </div>
+          <div class="col-3">
+            <label for="apellido">Apellido *</label>
+            <input id="apellido" type="text" required placeholder="Ej: González" />
+          </div>
+          <div class="col-3">
+            <label for="email">Email *</label>
+            <input id="email" type="email" required placeholder="maria@cic.gob.ar" />
+          </div>
+          <div class="col-3">
+            <label for="telefono">Teléfono</label>
+            <input id="telefono" type="tel" placeholder="341-1234567" />
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- DATOS PROFESIONALES -->
+      <fieldset>
+        <legend>Datos Profesionales</legend>
+        <div class="row">
+          <div class="col-3">
+            <label for="especialidad">Especialidad *</label>
+            <select id="especialidad" required>
+              <option value="">— Seleccione —</option>
+              <option value="Trabajador Social">Trabajador/a Social</option>
+              <option value="Psicólogo">Psicólogo/a</option>
+              <option value="Enfermero">Enfermero/a</option>
+              <option value="Abogado">Abogado/a</option>
+              <option value="Administrativo">Administrativo/a</option>
+              <option value="Coordinador">Coordinador/a</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          <div class="col-3">
+            <label for="matricula">Matrícula Profesional</label>
+            <input id="matricula" type="text" placeholder="Ej: TS-12345" />
+            <div class="hint">Opcional - Si aplica</div>
+          </div>
+          <div class="col-6">
+            <label for="horarios">Horarios de Atención</label>
+            <input id="horarios" type="text" placeholder="Ej: Lunes a Viernes 8-14hs" />
+            <div class="hint">Opcional - Horarios en los que atiende</div>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- ESTADO -->
+      <fieldset>
+        <legend>Estado</legend>
+        <div class="row">
+          <div class="col-3">
+            <label for="activo">Estado del Profesional *</label>
+            <select id="activo" required>
+              <option value="true">Activo</option>
+              <option value="false">Inactivo</option>
+            </select>
+            <div class="hint">Los profesionales inactivos no aparecen en asignación de casos</div>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- BOTONES -->
+      <div class="row">
+        <div class="col-3">
+          <a href="profesionales.html" class="ghost" style="display: inline-block; text-align: center; padding: 12px; text-decoration: none;">Cancelar</a>
+        </div>
+        <div class="col-3">
+          <button class="primary" type="submit" id="submitBtn">Guardar Profesional</button>
+        </div>
+      </div>
+      <p id="status" class="hint"></p>
+    </form>
+  </div>
+
+  <footer>
+    &copy; 2024 CIC Pavón Arriba - Todos los derechos reservados.
+  </footer>
+
+  <!-- Script -->
+  <script type="module" src="../JavaScript/profesionales-form.js"></script>
+</body>
+
+</html>
