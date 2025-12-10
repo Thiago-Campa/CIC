@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestión de Usuarios - CIC</title>
-  <link rel="stylesheet" href="Styles/admin.css">
+  <link rel="stylesheet" href="../Styles/admin.css">
 </head>
 <body>
   <div class="header">
@@ -52,7 +52,6 @@
   <script>
     console.log('Script cargado');
 
-    // Cargar usuarios desde localStorage
     function loadUsers() {
       const stored = localStorage.getItem('cicUsers');
       let users = [];
@@ -65,7 +64,6 @@
         }
       }
       
-      // Mostrar usuarios
       const container = document.getElementById('usersList');
       
       if (users.length === 0) {
@@ -92,7 +90,6 @@
       container.innerHTML = html;
     }
 
-    // Crear usuario
     document.getElementById('userForm').addEventListener('submit', function(e) {
       e.preventDefault();
       
@@ -101,7 +98,6 @@
       const role = document.getElementById('newRole').value;
       const email = document.getElementById('newEmail').value.trim();
       
-      // Cargar usuarios existentes
       let users = [];
       const stored = localStorage.getItem('cicUsers');
       if (stored) {
@@ -112,13 +108,11 @@
         }
       }
       
-      // Verificar duplicados
       if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
         alert('Ya existe un usuario con ese nombre');
         return;
       }
       
-      // Crear nuevo usuario
       const newId = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 100;
       
       const newUser = {
@@ -133,7 +127,6 @@
       
       users.push(newUser);
       
-      // Guardar
       localStorage.setItem('cicUsers', JSON.stringify(users));
       
       alert('✅ Usuario creado exitosamente');
@@ -141,7 +134,6 @@
       loadUsers();
     });
 
-    // Eliminar usuario
     function deleteUser(id) {
       if (!confirm('¿Eliminar este usuario?')) return;
       
@@ -156,13 +148,11 @@
       alert('Usuario eliminado');
     }
 
-    // Logout
     function logout() {
       sessionStorage.clear();
       window.location.href = 'index.html';
     }
 
-    // Cargar al inicio
     loadUsers();
     console.log('Usuarios cargados');
   </script>

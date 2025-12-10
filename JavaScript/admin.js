@@ -451,7 +451,7 @@ function checkAuth() {
     return true;
   } else {
     alert('Acceso denegado. Debe iniciar sesión.');
-    window.location.href = 'index.html';
+   window.location.href = 'admin-login.html';
     return false;
   }
 }

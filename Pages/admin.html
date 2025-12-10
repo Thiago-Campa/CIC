@@ -4,24 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel de Administración - CIC</title>
-  <link rel="stylesheet" href="Styles/admin.css">
-  <link rel="icon" href="Icons/icono-pavon-arriba.jpeg" type="image/png">
+  <link rel="stylesheet" href="../Styles/admin.css">
+  <link rel="icon" href="../Icons/icono-pavon-arriba.jpeg" type="image/png">
 </head>
 <body>
   <div class="header">
     <h1>Panel de Administración - CIC</h1>
     <nav class="nav-links">
       <a href="index.html">Inicio</a>
-      <a href="Pages/formulario.html">Nuevo Registro</a>
-      <a href="Pages/consultas.html">Consultas/Casos</a>
-      <a href="Pages/profesionales.html">Profesionales</a>
+      <a href="formulario.html">Nuevo Registro</a>
+      <a href="consultas.html">Consultas/Casos</a>
+      <a href="profesionales.html">Profesionales</a>
       <a href="user-management.html" id="userManagementLink">Gestión de Usuarios</a>
       <a href="#" onclick="mostrarModalExportacion('formularios')">📊 Exportar</a>
       <a href="#" onclick="handleLogout()" style="background: rgba(255,255,255,0.2); border-radius: 4px;">Cerrar Sesión</a>
     </nav>
   </div>
   <div class="container">
-    <!-- Estadísticas -->
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-number" id="totalHouseholds">0</div>
@@ -48,7 +47,6 @@
         <div class="stat-label">Menores de Edad</div>
       </div>
     </div>
-    <!-- Controles -->
     <div class="controls">
       <div class="controls-row">
         <input type="text" class="search-box" id="searchInput" placeholder="Buscar por nombre, apellido, DNI o dirección...">
@@ -73,7 +71,6 @@
         <button class="btn btn-primary" onclick="loadData()">Actualizar</button>
       </div>
     </div>
-    <!-- Tabla de datos -->
     <div class="data-table">
       <div class="table-header">
         <h3>Registro de Personas</h3>
@@ -105,20 +102,15 @@
         </table>
       </div>
     </div>
-    <!-- Paginación -->
     <div class="pagination" id="pagination" style="display: none;">
     </div>
   </div>
 
-  <!-- Librerías de exportación -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
   
-  <!-- Sistema de exportación -->
-  <script src="javaScript/export-system.js"></script>
-  
-  <!-- Scripts separados -->
-  <script src="JavaScript/admin.js"></script>
+  <script src="../JavaScript/export-system.js"></script>
+  <script src="../JavaScript/admin.js"></script>
 </body>
 </html>

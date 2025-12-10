@@ -11,8 +11,8 @@
   <div class="header">
     <h1>Gestión de Profesionales - CIC</h1>
     <nav class="nav-links">
-      <a href="../index.html">Inicio</a>
-      <a href="../admin.html">Panel Admin</a>
+      <a href="index.html">Inicio</a>
+      <a href="admin.html">Panel Admin</a>
       <a href="formulario.html">Nuevo Registro</a>
       <a href="consultas.html">Consultas/Casos</a>
       <a href="profesionales.html" style="background: rgba(255,255,255,0.2);">Profesionales</a>
@@ -22,7 +22,6 @@
   </div>
 
   <div class="container">
-    <!-- Estadísticas de Profesionales -->
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-number" id="totalProfesionales">0</div>
@@ -42,7 +41,6 @@
       </div>
     </div>
 
-    <!-- Controles -->
     <div class="controls">
       <div class="controls-row">
         <input type="text" class="search-box" id="searchInput" placeholder="Buscar por nombre, especialidad o matrícula...">
@@ -65,7 +63,6 @@
       </div>
     </div>
 
-    <!-- Tabla de profesionales -->
     <div class="data-table">
       <div class="table-header">
         <h3>Profesionales del CIC</h3>
@@ -99,15 +96,11 @@
     </div>
   </div>
 
-  <!-- Librerías de exportación -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
   
-  <!-- Sistema de exportación -->
-  <script src="../javaScript/export-system.js"></script>
-  
-  <!-- Script -->
+  <script src="../JavaScript/export-system.js"></script>
   <script src="../JavaScript/profesionales.js"></script>
 </body>
 </html>

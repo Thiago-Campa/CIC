@@ -1,20 +1,18 @@
 <!DOCTYPE html>
 <html lang="es">
 
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CIC - Centro de Integración Comunitaria</title>
-    <link rel="stylesheet" href="Styles/index.css">
-    <link rel="icon" href="/Icons/icono-pavon-arriba.jpeg" type="image/png">
+    <link rel="stylesheet" href="../Styles/index.css">
+    <link rel="icon" href="../Icons/icono-pavon-arriba.jpeg" type="image/png">
 </head> 
 
 <body>
     <div class="container fondo-principal">
         <div class="texto-rectangulo">
-            <!-- Logo con acceso secreto para admins (doble clic) -->
-            <img src="/Images/LOGO-BLANCO-PNG-RGB.webp" 
+            <img src="../Images/LOGO-BLANCO-PNG-RGB.webp" 
                  alt="Logo CIC" 
                  id="logoAdmin"
                  style="width: 120px; margin-bottom: 20px; cursor: pointer;">
@@ -23,7 +21,7 @@
             <p>Completá el formulario para registrar a tu familia.</p>
             
             <div class="botones-principales">
-                <a href="/Pages/formulario.html" class="btn btn-formulario">Completar Formulario</a>
+                <a href="formulario.html" class="btn btn-formulario">Completar Formulario</a>
             </div>
         </div>
     </div>
@@ -36,7 +34,7 @@
     </div>
 
     <div class="logo-abajo">
-        <img src="/Images/LOGO-BLANCO-PNG-RGB.webp" alt="Logo" class="icono-form">
+        <img src="../Images/LOGO-BLANCO-PNG-RGB.webp" alt="Logo" class="icono-form">
     </div>
 
     <footer>
@@ -44,7 +42,6 @@
     </footer>
 
     <script>
-        // Acceso secreto para administradores (doble clic en el logo)
         let clickCount = 0;
         let clickTimer = null;
 
@@ -54,11 +51,10 @@
             if (clickCount === 1) {
                 clickTimer = setTimeout(() => {
                     clickCount = 0;
-                }, 800); // 800ms para hacer doble clic
+                }, 800);
             } else if (clickCount === 2) {
                 clearTimeout(clickTimer);
                 clickCount = 0;
-                // Redirigir a la página de login de administradores
                 window.location.href = 'admin-login.html';
             }
         });

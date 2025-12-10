@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login Administrativo - CIC</title>
-  <link rel="stylesheet" href="Styles/formulario.css">
-  <link rel="icon" href="Icons/icono-pavon-arriba.jpeg" type="image/png">
+  <link rel="stylesheet" href="../Styles/formulario.css">
+  <link rel="icon" href="../Icons/icono-pavon-arriba.jpeg" type="image/png">
   <style>
     .login-container {
       max-width: 450px;
@@ -114,7 +114,7 @@
 <body>
   <div class="login-container">
     <div class="login-header">
-      <img src="Images/PavonArriba.jpg" alt="Logo CIC">
+      <img src="../Images/PavonArriba.jpg" alt="Logo CIC">
       <h2>Acceso al Sistema</h2>
       <p style="color: #666; font-size: 14px;">Centro de Integración Comunitaria</p>
     </div>
@@ -142,9 +142,6 @@
   </div>
 
   <script>
-    // ============================================
-    // BASE DE DATOS DE USUARIOS HARDCODEADOS
-    // ============================================
     const hardcodedUsers = {
       'admin': { password: 'cic2024', role: 'admin' },
       'administrador': { password: 'pavon123', role: 'admin' },
@@ -152,9 +149,6 @@
       'consulta': { password: 'read123', role: 'lectura' }
     };
 
-    // ============================================
-    // FUNCIONES AUXILIARES
-    // ============================================
     function showError(message) {
       const errorEl = document.getElementById('errorMessage');
       errorEl.textContent = message;
@@ -175,9 +169,6 @@
       }, 3000);
     }
 
-    // ============================================
-    // VERIFICAR USUARIOS CREADOS (localStorage)
-    // ============================================
     function checkCreatedUser(username, password) {
       const stored = localStorage.getItem('cicUsers');
       if (!stored) return null;
@@ -190,12 +181,10 @@
         );
         
         if (user) {
-          // Verificar que esté activo
           if (!user.active) {
             return { error: 'Su cuenta está inactiva. Contacte al administrador.' };
           }
           
-          // Usuario válido
           return {
             username: user.username,
             role: user.role,
@@ -209,9 +198,6 @@
       return null;
     }
 
-    // ============================================
-    // ACTUALIZAR ÚLTIMO LOGIN
-    // ============================================
     function updateLastLogin(username) {
       const stored = localStorage.getItem('cicUsers');
       if (!stored) return;
@@ -231,23 +217,17 @@
       }
     }
 
-    // ============================================
-    // MANEJO DEL LOGIN
-    // ============================================
     document.getElementById('loginForm').addEventListener('submit', function(e) {
       e.preventDefault();
       
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value;
       
-      // 1. Verificar usuarios hardcodeados primero
       if (hardcodedUsers[username] && hardcodedUsers[username].password === password) {
-        // Login exitoso - usuario hardcodeado
         sessionStorage.setItem('isLoggedIn', 'true');
         sessionStorage.setItem('currentUser', username);
         sessionStorage.setItem('userRole', hardcodedUsers[username].role);
         
-        // Compatibilidad con código anterior
         if (hardcodedUsers[username].role === 'admin') {
           sessionStorage.setItem('isAdmin', 'true');
           sessionStorage.setItem('adminUser', username);
@@ -261,17 +241,14 @@
         return;
       }
       
-      // 2. Verificar usuarios creados (localStorage)
       const createdUser = checkCreatedUser(username, password);
       
       if (createdUser) {
         if (createdUser.error) {
-          // Usuario encontrado pero inactivo
           showError(createdUser.error);
           return;
         }
         
-        // Login exitoso - usuario creado
         sessionStorage.setItem('isLoggedIn', 'true');
         sessionStorage.setItem('currentUser', createdUser.username);
         sessionStorage.setItem('userRole', createdUser.role);
@@ -281,7 +258,6 @@
           sessionStorage.setItem('adminUser', createdUser.username);
         }
         
-        // Actualizar último login
         updateLastLogin(createdUser.username);
         
         showSuccess('¡Bienvenido! Redirigiendo...');
@@ -292,13 +268,9 @@
         return;
       }
       
-      // 3. Usuario no encontrado o contraseña incorrecta
       showError('Usuario o contraseña incorrectos');
     });
 
-    // ============================================
-    // VERIFICAR SI YA ESTÁ LOGUEADO
-    // ============================================
     window.addEventListener('DOMContentLoaded', function() {
       const isLoggedIn = sessionStorage.getItem('isLoggedIn');
       if (isLoggedIn === 'true') {
