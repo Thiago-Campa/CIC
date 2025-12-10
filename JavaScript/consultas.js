@@ -307,7 +307,7 @@ function handleLogout() {
   if (confirm('¿Desea cerrar la sesión?')) {
     sessionStorage.clear();
     alert('Sesión cerrada exitosamente');
-    window.location.href = '../index.html';
+    window.location.href = 'index.html'; 
   }
 }
 
