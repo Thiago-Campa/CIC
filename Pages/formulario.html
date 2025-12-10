@@ -12,6 +12,7 @@
   <!-- Carga de módulos -->
 <script type="module" src="/JavaScript/firebase.js"></script>
 <script type="module" src="/JavaScript/app.js"></script>
+<script type="module" src="/JavaScript/discapacidad.js"></script>
 </head>
 
 <body>
@@ -128,41 +129,41 @@
 
       <!-- DISCAPACIDAD / BENEFICIO / OBRA SOCIAL -->
       <fieldset>
-        <legend>Discapacidad / Beneficio / Obra social</legend>
-        <div class="row">
-          <div class="col-2">
-            <label for="tieneDis">¿Discapacidad?</label>
-            <select id="tieneDis"><option value="">—</option><option>No</option><option>Si</option></select>
-          </div>
-          <div class="col-2"><label for="tipoDis">Tipo</label><input id="tipoDis" placeholder="Auditiva, Visual, Motriz, ..." /></div>
-          <div class="col-2">
-            <label for="tratDis">Tratamiento médico</label>
-            <select id="tratDis"><option value="">—</option><option>No</option><option>Si</option></select>
-          </div>
-          <div class="col-2">
-            <label for="conCUD">¿Con Certificado Único de Discapacidad?</label>
-            <select id="conCUD"><option value="">—</option><option>No</option><option>Si</option></select>
-          </div>
-          <div class="col-2"><label for="cudVto">Vencimiento CUD</label><input id="cudVto" type="date" /></div>
+  <legend>Discapacidad / Beneficio / Obra social</legend>
 
-          <div class="col-2">
-            <label for="tieneBen">¿Plan / Beneficio?</label>
-            <select id="tieneBen"><option value="">—</option><option>No</option><option>Si</option></select>
-          </div>
-          <div class="col-2"><label for="nomBen">Nombre plan</label><input id="nomBen" placeholder="AUH, Progresar..." /></div>
-          <div class="col-2"><label for="orgBen">Organismo</label><input id="orgBen" placeholder="ANSES, MDS..." /></div>
-          <div class="col-2">
-            <label for="estBen">Estado</label>
-            <select id="estBen"><option value="">—</option><option>Activo</option><option>Suspendido</option><option>Finalizado</option></select>
-          </div>
+  <div class="row">
+    <div class="col-2">
+      <label for="tieneDis">¿Discapacidad?</label>
+      <select id="tieneDis">
+        <option value="">—</option>
+        <option>No</option>
+        <option>Si</option>
+      </select>
+    </div>
+  </div>
 
-          <div class="col-2">
-            <label for="tieneOS">¿Obra social?</label>
-            <select id="tieneOS"><option value="">—</option><option>No</option><option>Si</option></select>
-          </div>
-          <div class="col-2"><label for="nomOS">Nombre OS</label><input id="nomOS" placeholder="IAPOS, PAMI..." /></div>
-        </div>
-      </fieldset>
+  <!-- ⬇️ TODO ESTO SE OCULTA/SE MUESTRA -->
+  <div id="discapacidadExtra">
+    <div class="row">
+      <div class="col-2">
+        <label for="tipoDis">Tipo</label>
+        <input id="tipoDis" placeholder="Auditiva, Visual, Motriz, ..." />
+      </div>
+      <div class="col-2">
+        <label for="tratDis">Tratamiento médico</label>
+        <select id="tratDis"><option value="">—</option><option>No</option><option>Si</option></select>
+      </div>
+      <div class="col-2">
+        <label for="conCUD">¿Con Certificado Único de Discapacidad?</label>
+        <select id="conCUD"><option value="">—</option><option>No</option><option>Si</option></select>
+      </div>
+      <div class="col-2">
+        <label for="cudVto">Vencimiento CUD</label>
+        <input id="cudVto" type="date" />
+      </div>
+    </div>
+  </div>
+</fieldset>
 
       <!-- FOTO -->
       <fieldset>
