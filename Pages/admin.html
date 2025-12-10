@@ -21,6 +21,7 @@
     </nav>
   </div>
   <div class="container">
+    <!-- Estadísticas -->
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-number" id="totalHouseholds">0</div>
@@ -47,6 +48,7 @@
         <div class="stat-label">Menores de Edad</div>
       </div>
     </div>
+    <!-- Controles -->
     <div class="controls">
       <div class="controls-row">
         <input type="text" class="search-box" id="searchInput" placeholder="Buscar por nombre, apellido, DNI o dirección...">
@@ -71,6 +73,7 @@
         <button class="btn btn-primary" onclick="loadData()">Actualizar</button>
       </div>
     </div>
+    <!-- Tabla de datos -->
     <div class="data-table">
       <div class="table-header">
         <h3>Registro de Personas</h3>
@@ -102,15 +105,20 @@
         </table>
       </div>
     </div>
+    <!-- Paginación -->
     <div class="pagination" id="pagination" style="display: none;">
     </div>
   </div>
 
+  <!-- Librerías de exportación -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
   
-  <script src="../JavaScript/export-system.js"></script>
+  <!-- Sistema de exportación -->
+  <script src="../javaScript/export-system.js"></script>
+  
+  <!-- Scripts separados -->
   <script src="../JavaScript/admin.js"></script>
 </body>
 </html>
