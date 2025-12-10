@@ -8,20 +8,18 @@
     <title>CIC - Centro de Integración Comunitaria</title>
     <link rel="stylesheet" href="Styles/index.css">
     <link rel="icon" href="/Icons/icono-pavon-arriba.jpeg" type="image/png">
-</head> 
+</head>
 
 <body>
     <div class="container fondo-principal">
         <div class="texto-rectangulo">
             <!-- Logo con acceso secreto para admins (doble clic) -->
-            <img src="/Images/LOGO-BLANCO-PNG-RGB.webp" 
-                 alt="Logo CIC" 
-                 id="logoAdmin"
-                 style="width: 120px; margin-bottom: 20px; cursor: pointer;">
-            
+            <img src="/Images/LOGO-BLANCO-PNG-RGB.webp" alt="Logo CIC" id="logoAdmin"
+                style="width: 120px; margin-bottom: 20px; cursor: pointer;">
+
             <h1>AYUDANOS A AYUDARTE</h1>
             <p>Completá el formulario para registrar a tu familia.</p>
-            
+
             <div class="botones-principales">
                 <a href="/Pages/formulario.html" class="btn btn-formulario">Completar Formulario</a>
             </div>
@@ -48,9 +46,9 @@
         let clickCount = 0;
         let clickTimer = null;
 
-        document.getElementById('logoAdmin').addEventListener('click', function() {
+        document.getElementById('logoAdmin').addEventListener('click', function () {
             clickCount++;
-            
+
             if (clickCount === 1) {
                 clickTimer = setTimeout(() => {
                     clickCount = 0;
