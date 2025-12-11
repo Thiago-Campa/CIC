@@ -12,6 +12,10 @@ body {
   flex-wrap: wrap; /* para que no se rompa en pantallas chicas */
 }
 
+* {
+  box-sizing: border-box;
+}
+
 .btn-volver {
   display: inline-block;
   margin-top: 10px;
