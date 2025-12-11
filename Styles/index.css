@@ -6,20 +6,17 @@
 
 html,
 body {
-    height: 100%;
+    height: auto;   /* que el body crezca con el contenido */
     margin: 0;
 }
 
 body {
-    display: flex;
-    flex-direction: column;
     font-family: Arial, sans-serif;
     background-color: #368dff;
     line-height: 1.6;
 }
 
 .container {
-    flex: 1;
     width: 80%;
     margin: 20px auto;
     text-align: center;
@@ -27,7 +24,7 @@ body {
 
 .fondo-principal {
     position: relative;
-    background-image: url('/Images/cic.webp');
+    background-image: url('/CIC-rama-pico/Images/cic.webp');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -35,8 +32,13 @@ body {
     color: #fff;
     border-radius: 8px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    height: 510px;
+    min-height: 510px;   /* se adapta al contenido */
     overflow: hidden;
+    z-index: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .fondo-principal::before {
@@ -51,11 +53,6 @@ body {
     border-radius: 8px;
 }
 
-.fondo-principal>* {
-    position: relative;
-    z-index: 1;
-}
-
 .fondo-principal .texto-rectangulo {
     background-color: #368dff;
     color: #fff;
@@ -64,14 +61,16 @@ body {
     max-width: 500px;
     margin: 0 auto;
     text-align: center;
+    position: relative;
+    z-index: 1;
 }
 
 .btn {
     display: inline-block;
     margin-top: 20px;
     padding: 12px 24px;
-    background-color: #368dff;
-    color: white;
+    background-color: #fff;
+    color: #368dff;
     font-size: 16px;
     border: none;
     border-radius: 8px;
@@ -80,24 +79,25 @@ body {
 }
 
 .btn:hover {
-    background-color: #ffffff;
-    color: #368dff;
+    background-color: #368dff;
+    color: #fff;
     transform: scale(1.05);
 }
 
 /* MAPA */
 .mapa {
-    max-width: 900px;       
-    margin: 30px auto;      
-    border-radius: 15px;    
-    overflow: hidden;      
+    width: 80%;           /* ✅ mismo ancho que la cabecera */
+    max-width: 900px;
+    margin: 30px auto;
+    border-radius: 15px;
+    overflow: hidden;
     box-shadow: 0 4px 15px rgba(0,0,0,0.25);
 }
 
 .mapa iframe {
-    width: 100%;  
-    height: 300px; 
-    border: 0;     
+    width: 100%;
+    height: 400px;        /* ✅ más alto para que se vea completo */
+    border: 0;
 }
 
 /* LOGO */
@@ -134,7 +134,7 @@ footer {
 
     .fondo-principal {
         padding: 60px 15px;
-        height: auto; /* que se ajuste al contenido */
+        min-height: auto;
     }
 
     .fondo-principal .texto-rectangulo {
@@ -148,7 +148,7 @@ footer {
     }
 
     .mapa iframe {
-        height: 220px;
+        height: 300px;
     }
 
     .logo-abajo .icono-form {
@@ -175,6 +175,6 @@ footer {
     }
 
     .mapa iframe {
-        height: 200px;
+        height: 220px;
     }
 }
